@@ -9,15 +9,13 @@
 System::System(int _numSpheres,
     int _numSmallSpheres,
     int _numLargeSpheres,
-    double _minSizeSphere,
-    double _maxSizeSphere,
+    double _ratioSizeSphere,
     double _temperature,
     double _lengthBox)
     :   numSpheres(_numSpheres),
         numSmallSpheres(_numSmallSpheres),
         numLargeSpheres(_numLargeSpheres),
-        minSizeSphere(_minSizeSphere),
-        maxSizeSphere(_maxSizeSphere),
+        ratioSizeSphere(_ratioSizeSphere),
         temperature(_temperature),
         lengthBox(_lengthBox),
         mersenneTwister((std::random_device())())
@@ -26,18 +24,17 @@ System::System(int _numSpheres,
     const double latticeParameter = lengthBox / latticeWidth;
     assert(std::pow(latticeWidth,3) >= numSpheres);
 
+    maxRadiusSphere = latticeParameter/2;
+    minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
+
     // Binary mixture specific
     std::uniform_int_distribution<int> chooseRadius(0,1);
-
-    // Continuous: using random number generation or linear spaced.
-    // std::uniform_real_distribution<double> chooseRadius(minSizeSphere, maxSizeSphere);
-
-    int numPlacedSpheres = 0;
 
     // Possibly Binary mixture specific
     int numPlacedSmallSpheres = 0;
     int numPlacedLargeSpheres = 0;
 
+    int numPlacedSpheres = 0;
     Sphere sphere;
     int randomRadius;
     for(int i=0; i<latticeWidth; ++i)
@@ -58,12 +55,12 @@ System::System(int _numSpheres,
                     {
                         if(numPlacedSmallSpheres<numSmallSpheres)
                         {
-                            sphere.radius = minSizeSphere;
+                            sphere.radius = minRadiusSphere;
                             numPlacedSmallSpheres++;
                         }
                         else
                         {
-                            sphere.radius = maxSizeSphere;
+                            sphere.radius = maxRadiusSphere;
                             numPlacedLargeSpheres++;
                         }
                     }
@@ -71,12 +68,12 @@ System::System(int _numSpheres,
                     {
                         if(numPlacedLargeSpheres<numLargeSpheres)
                         {
-                            sphere.radius = maxSizeSphere;
+                            sphere.radius = maxRadiusSphere;
                             numPlacedLargeSpheres++;
                         }
                         else
                         {
-                            sphere.radius = minSizeSphere;
+                            sphere.radius = minRadiusSphere;
                             numPlacedSmallSpheres++;
                         }
                     }
@@ -90,8 +87,8 @@ System::System(int _numSpheres,
             }
         }
     }
-
 }
+
 int System::FindLatticeWidth() const
 {
     for(int i=2; i<=numSpheres; ++i)
@@ -107,9 +104,28 @@ void System::PrintStates() const
 {
     for(Sphere sphere : spheres)
     {
-        std::cout<<"(x,y,z)=("<<sphere.position.x<<","
-            <<sphere.position.y<<","<<sphere.position.z<<")   "
+        std::cout<<"(x,y,z)=("
+            <<sphere.position.x<<","
+            <<sphere.position.y<<","
+            <<sphere.position.z<<")   "
             <<"r="<<sphere.radius
             <<std::endl;
     }
+}
+
+std::vector<std::vector<double>> System::GetStates() const
+{
+    std::vector<std::vector<double>> sphereStates;
+    sphereStates.reserve(numSpheres);
+    std::vector<double> sphereState(4);
+
+    for(Sphere sphere : spheres)
+    {
+        sphereState[0] = sphere.position.x;
+        sphereState[1] = sphere.position.y;
+        sphereState[2] = sphere.position.z;
+        sphereState[3] = sphere.radius;
+        sphereStates.push_back(sphereState);
+    }
+    return sphereStates;
 }

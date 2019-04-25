@@ -13,11 +13,14 @@ private:
     const int numSpheres;
     const int numSmallSpheres;
     const int numLargeSpheres;
-    const double minSizeSphere;
-    const double maxSizeSphere;
+    const double ratioSizeSphere;
     const double temperature;
     const double lengthBox;
+
     std::vector<Sphere> spheres;
+
+    double minRadiusSphere;
+    double maxRadiusSphere;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;
@@ -27,13 +30,13 @@ public:
     System(int _numSpheres,
             int _numSmallSpheres,
             int _numLargeSpheres,
-            double _minSizeSphere,
-            double _maxSizeSphere,
+            double _ratioSizeSphere,
             double _temperature,
             double _lengthBox);
 
     int FindLatticeWidth() const;
     void PrintStates() const;
+    std::vector<std::vector<double>> GetStates() const;
 };
 
 #endif
