@@ -7,47 +7,20 @@
 #include <cassert>
 
 #include "system.h"
+#include "config.h"
 
-void MonteCarlo(const int numSpheres,
-        const int numSmallSpheres,
-        const int numLargeSpheres,
-        const double ratioSizeSphere,
-        const double temperature,
-        const double lengthBox,
-        const double swapProbability,
-        const double epsilonConstant);
+void MonteCarlo(Config config, int numIterations);
 void Export2DVector(std::vector<std::vector<double>> &vector2D);
 
 int main()
 {
     // Record start time
     auto start = std::chrono::high_resolution_clock::now();
+    Config config("data/config.txt");
 
-    const int numSpheres = 1400;
-    assert(numSpheres > 1);
+    int numIterations = 1;
 
-    const double numDensity = 1;
-    const double volumeBox = numSpheres/numDensity;
-    const double lengthBox = cbrt(volumeBox);
-
-    const double temperatureFixed = 0.25;
-
-    const double epsilonConstant = 1;
-
-    // Should be such that translation acceptance is between 30-40%
-    const double maxTranslationDistanceRatioOfSize = 0.1;
-
-    const double ratioSizeSphere = 1.2;
-
-    // Binary mixture specific 50:50 ratio
-    const int numSmallSpheres = numSpheres/2;
-    const int numLargeSpheres = numSpheres - numSmallSpheres;
-    assert(numSpheres == numSmallSpheres+numLargeSpheres);
-
-    const double swapProbability = 0.0;
-
-    MonteCarlo(numSpheres, numSmallSpheres, numLargeSpheres, ratioSizeSphere,
-            temperatureFixed, lengthBox, swapProbability, epsilonConstant);
+    MonteCarlo(config, numIterations);
 
     // Record end time
     auto finish = std::chrono::high_resolution_clock::now();
@@ -57,23 +30,9 @@ int main()
     return 0;
 }
 
-void MonteCarlo(const int numSpheres,
-        const int numSmallSpheres,
-        const int numLargeSpheres,
-        const double ratioSizeSphere,
-        const double temperatureFixed,
-        const double lengthBox,
-        const double swapProbability,
-        const double epsilonConstant)
+void MonteCarlo(Config config, int numIterations)
 {
-    System system(numSpheres,
-            numSmallSpheres,
-            numLargeSpheres,
-            ratioSizeSphere,
-            temperatureFixed,
-            lengthBox,
-            swapProbability,
-            epsilonConstant);
+    System system(config);
 
     system.PrintStates();
 
@@ -81,12 +40,30 @@ void MonteCarlo(const int numSpheres,
 
     Export2DVector(exportedStates);
 
-    if(swapProbability > 0)
+    for(int i=0; i<numIterations; ++i)
     {
-        system.AttemptSwap();
+        if(config.GetSwapProbability() > 0)
+        {
+            system.AttemptSwap();
+        }
+        system.AttemptTranslation();
     }
 
-    system.AttemptTranslation();
+    int acceptedTranslations = system.GetAcceptedTranslations();
+    double acceptanceFracTranslations = (double) acceptedTranslations/numIterations;
+    std::cout<<"Attempted translations: "<<numIterations<<std::endl;
+    std::cout<<"Accepted translations: "<<acceptedTranslations<<std::endl;
+    std::cout<<"Acceptance fraction: "<<acceptanceFracTranslations<<std::endl;
+
+    int acceptedSwaps = system.GetAcceptedSwaps();
+    int rejectedSwaps = system.GetRejectedSwaps();
+    int attemptedSwaps = acceptedSwaps + rejectedSwaps;
+    double acceptanceFracSwaps = (double) acceptedSwaps/attemptedSwaps;
+    std::cout<<"Attempted translations: "<<attemptedSwaps<<std::endl;
+    std::cout<<"Accepted translations: "<<acceptedSwaps<<std::endl;
+    std::cout<<"Acceptance fraction: "<<acceptanceFracSwaps<<std::endl;
+
+    Export2DVector(exportedStates);
 }
 
 void Export2DVector(std::vector<std::vector<double>> &vector2D)

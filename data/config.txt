@@ -1,0 +1,6 @@
+numSpheres = 5
+ratioSizeSphere = 1.2
+numDensity = 1.0
+temperatureFixed = 0.25
+maxTranslationDistanceInMaxParticleSize = 0.1
+swapProbability = 0.0

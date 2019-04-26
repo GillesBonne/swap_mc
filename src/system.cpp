@@ -4,38 +4,39 @@
 #include <cmath>
 #include <random>
 #include <cassert>
-#include "system.h"
 
-System::System(int _numSpheres,
-    int _numSmallSpheres,
-    int _numLargeSpheres,
-    double _ratioSizeSphere,
-    double _temperatureFixed,
-    double _lengthBox,
-    double _swapProbability,
-    double _epsilonConstant)
-    :   numSpheres(_numSpheres),
-        numSmallSpheres(_numSmallSpheres),
-        numLargeSpheres(_numLargeSpheres),
-        ratioSizeSphere(_ratioSizeSphere),
-        temperatureFixed(_temperatureFixed),
-        lengthBox(_lengthBox),
-        swapProbability(_swapProbability),
-        epsilonConstant(_epsilonConstant),
+#include "system.h"
+#include "config.h"
+
+System::System(Config config)
+    :   numSpheres(config.GetNumSpheres()),
+        ratioSizeSphere(config.GetRatioSizeSphere()),
+        lengthBox(config.GetLengthBox()),
+        latticeWidth(config.GetLatticeWidth()),
+        latticeParameter(config.GetLatticeParameter()),
+        temperatureFixed(config.GetTemperatureFixed()),
+        swapProbability(config.GetSwapProbability()),
+        maxTranslationDistanceInMaxParticleSize(config.GetMaxTranslationDistanceInMaxParticleSize()),
+        epsilonConstant(1),
         mersenneTwister((std::random_device())()),
-        randomDouble(0,1)
+        randomDouble(0,1),
+        randomPosNegDouble(-1,1),
+        randomParticle(0,numSpheres-1)
 {
-    const int latticeWidth = FindLatticeWidth();
-    const double latticeParameter = lengthBox / latticeWidth;
+    assert(numSpheres > 1);
     assert(std::pow(latticeWidth,3) >= numSpheres);
 
-    maxRadiusSphere = latticeParameter/2;
-    minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
+    double maxRadiusSphere = latticeParameter/2;
+    double minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
 
-    // Binary mixture specific
+    // Max tranlationdistances should be such that translation acceptance is between 30-40%
+    maxTranslationDistance = maxRadiusSphere*maxTranslationDistanceInMaxParticleSize;
+
+    // Binary mixture specific 50:50 ratio
+    const int numSmallSpheres = numSpheres/2;
+    const int numLargeSpheres = numSpheres - numSmallSpheres;
+    assert(numSpheres == numSmallSpheres+numLargeSpheres);
     std::uniform_int_distribution<int> chooseRadius(0,1);
-
-    // Possibly Binary mixture specific
     int numPlacedSmallSpheres = 0;
     int numPlacedLargeSpheres = 0;
 
@@ -94,17 +95,6 @@ System::System(int _numSpheres,
     }
 }
 
-int System::FindLatticeWidth() const
-{
-    for(int i=2; i<=numSpheres; ++i)
-    {
-        if(i*i*i >= numSpheres)
-        {
-            return i;
-        }
-    }
-}
-
 void System::PrintStates() const
 {
     for(Sphere sphere : spheres)
@@ -137,7 +127,17 @@ std::vector<std::vector<double>> System::GetStates() const
 
 void System::AttemptTranslation()
 {
-    // Convert maxTranslationDistanceRatioOfSize to maxTranslationDistance
+    int randomParticleIndex = ChooseRandomParticle();
+    double energy = CalculateEnergy(randomParticleIndex, spheres[randomParticleIndex]);
+
+    Sphere newSphere = spheres[randomParticleIndex];
+    newSphere.position.x += maxTranslationDistance*randomPosNegDouble(mersenneTwister);
+    newSphere.position.y += maxTranslationDistance*randomPosNegDouble(mersenneTwister);
+    newSphere.position.z += maxTranslationDistance*randomPosNegDouble(mersenneTwister);
+
+    double energyNew = CalculateEnergy(randomParticleIndex, newSphere);
+    double energyDifference = energyNew - energy;
+    std::cout<<"Energy diff: "<<energyDifference<<std::endl;
 }
 
 void System::AttemptSwap()
@@ -145,7 +145,22 @@ void System::AttemptSwap()
     if(IsChosenWithProbability(swapProbability))
     {
         // Choose two DIFFERENT particles randomly
+        int randomParticleIndex1 = ChooseRandomParticle();
+        int randomParticleIndex2;
+        do
+        {
+            randomParticleIndex2 = ChooseRandomParticle();
+        }
+        while(randomParticleIndex1 == randomParticleIndex2);
+
+
     }
+}
+
+int System::ChooseRandomParticle()
+{
+    int randomParticleIndex = randomParticle(mersenneTwister);
+    return randomParticleIndex;
 }
 
 double System::CalculateEnergy(const int index, const Sphere sphere)
@@ -153,11 +168,7 @@ double System::CalculateEnergy(const int index, const Sphere sphere)
     double energy = 0;
     for(int i=0; i<numSpheres; ++i)
     {
-        if(i==index)
-        {
-            break;
-        }
-        else
+        if(i!=index)
         {
             energy += PotentialWCA(RadiusSumOf(spheres[index],spheres[i]),
                     DistanceBetween(spheres[index],spheres[i]));
@@ -232,6 +243,18 @@ bool System::IsChosenWithProbability(const double probabilityReference)
     {
         isChosen = false;
     }
-
     return isChosen;
+}
+
+int System::GetAcceptedTranslations() const
+{
+    return acceptedTranslations;
+}
+int System::GetAcceptedSwaps() const
+{
+    return acceptedSwaps;
+}
+int System::GetRejectedSwaps() const
+{
+    return rejectedSwaps;
 }

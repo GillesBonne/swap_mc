@@ -5,43 +5,43 @@
 #include <random>
 
 #include "sphere.h"
+#include "config.h"
 
 class System
 {
 private:
     // Member variables
     const int numSpheres;
-    const int numSmallSpheres;
-    const int numLargeSpheres;
     const double ratioSizeSphere;
-    const double temperatureFixed;
+
     const double lengthBox;
+    const int latticeWidth;
+    const double latticeParameter;
+
+    const double temperatureFixed;
+
     const double swapProbability;
+    const double maxTranslationDistanceInMaxParticleSize;
+    double maxTranslationDistance;
+
     const double epsilonConstant;
+
 
     std::vector<Sphere> spheres;
 
-    double minRadiusSphere;
-    double maxRadiusSphere;
-
-    int acceptedSwap = 0;
-    int rejectedSwap = 0;
-    int acceptedTranslation = 0;
+    int acceptedSwaps = 0;
+    int rejectedSwaps = 0;
+    int acceptedTranslations = 0;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;
     std::uniform_real_distribution<double> randomDouble;
+    std::uniform_real_distribution<double> randomPosNegDouble;
+    std::uniform_int_distribution<int> randomParticle;
 
 public:
     // Constructor
-    System(int _numSpheres,
-            int _numSmallSpheres,
-            int _numLargeSpheres,
-            double _ratioSizeSphere,
-            double _temperatureFixed,
-            double _lengthBox,
-            double _swapProbability,
-            double _epsilonConstant);
+    System(Config config);
 
     int FindLatticeWidth() const;
     void PrintStates() const;
@@ -49,6 +49,8 @@ public:
 
     void AttemptTranslation();
     void AttemptSwap();
+
+    int ChooseRandomParticle();
 
     double CalculateEnergy(const int index, const Sphere sphere);
 
@@ -60,6 +62,10 @@ public:
     void CorrectForPeriodicDistance(double& length);
 
     bool IsChosenWithProbability(const double probabilityReference);
+
+    int GetAcceptedTranslations() const;
+    int GetAcceptedSwaps() const;
+    int GetRejectedSwaps() const;
 };
 
 #endif
