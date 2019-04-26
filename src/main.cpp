@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
-#include <assert.h>
+#include <cassert>
 
 #include "system.h"
 
@@ -33,6 +33,9 @@ int main()
     const double temperatureFixed = 0.25;
 
     const double epsilonConstant = 1;
+
+    // Should be such that translation acceptance is between 30-40%
+    const double maxTranslationDistanceRatioOfSize = 0.1;
 
     const double ratioSizeSphere = 1.2;
 

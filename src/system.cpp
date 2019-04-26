@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <random>
-#include <assert.h>
+#include <cassert>
 #include "system.h"
 
 System::System(int _numSpheres,
@@ -22,7 +22,8 @@ System::System(int _numSpheres,
         lengthBox(_lengthBox),
         swapProbability(_swapProbability),
         epsilonConstant(_epsilonConstant),
-        mersenneTwister((std::random_device())())
+        mersenneTwister((std::random_device())()),
+        randomDouble(0,1)
 {
     const int latticeWidth = FindLatticeWidth();
     const double latticeParameter = lengthBox / latticeWidth;
@@ -136,15 +137,18 @@ std::vector<std::vector<double>> System::GetStates() const
 
 void System::AttemptTranslation()
 {
-
+    // Convert maxTranslationDistanceRatioOfSize to maxTranslationDistance
 }
 
 void System::AttemptSwap()
 {
-
+    if(IsChosenWithProbability(swapProbability))
+    {
+        // Choose two DIFFERENT particles randomly
+    }
 }
 
-double System::CalculateEnergy(int index, Sphere sphere)
+double System::CalculateEnergy(const int index, const Sphere sphere)
 {
     double energy = 0;
     for(int i=0; i<numSpheres; ++i)
@@ -162,7 +166,7 @@ double System::CalculateEnergy(int index, Sphere sphere)
     return energy;
 }
 
-double System::PotentialWCA(double sigmaSummedRadius, double distanceBetweenSpheres) const
+double System::PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
 {
     double potential;
     if(distanceBetweenSpheres > pow(2, (double) 1/6)*sigmaSummedRadius)
@@ -171,18 +175,18 @@ double System::PotentialWCA(double sigmaSummedRadius, double distanceBetweenSphe
     }
     else
     {
-        potential = epsilonConstant * (1 - pow((sigmaSummedRadius/distanceBetweenSpheres),6)
+        potential = 4 * epsilonConstant * (1 - pow((sigmaSummedRadius/distanceBetweenSpheres),6)
                                         + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
     }
     return potential;
 }
 
-double System::RadiusSumOf(Sphere sphere1, Sphere sphere2) const
+double System::RadiusSumOf(const Sphere sphere1, const Sphere sphere2) const
 {
     return sphere1.radius + sphere2.radius;
 }
 
-double System::DistanceBetween(Sphere sphere1, Sphere sphere2)
+double System::DistanceBetween(const Sphere sphere1, const Sphere sphere2)
 {
     double diffX = sphere1.position.x - sphere2.position.x;
     double diffY = sphere1.position.y - sphere2.position.y;
@@ -195,7 +199,7 @@ double System::DistanceBetween(Sphere sphere1, Sphere sphere2)
     return sqrt(diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-void System::CorrectForPeriodicDistance(double &length)
+void System::CorrectForPeriodicDistance(double& length)
 {
     bool negativeOutsideBoundary = (length < -0.5*lengthBox);
     bool positiveOutsideBoundary = (length > 0.5*lengthBox);
@@ -213,4 +217,21 @@ void System::CorrectForPeriodicDistance(double &length)
     positiveOutsideBoundary = (length > 0.5*lengthBox);
     }
     while(negativeOutsideBoundary || positiveOutsideBoundary);
+}
+
+bool System::IsChosenWithProbability(const double probabilityReference)
+{
+    double probabilityRandom = randomDouble(mersenneTwister);
+
+    bool isChosen;
+    if(probabilityRandom<=probabilityReference)
+    {
+        isChosen = true;
+    }
+    else
+    {
+        isChosen = false;
+    }
+
+    return isChosen;
 }

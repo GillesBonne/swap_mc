@@ -24,13 +24,13 @@ private:
     double minRadiusSphere;
     double maxRadiusSphere;
 
-    int attemptedSwap = 0;
+    int acceptedSwap = 0;
     int rejectedSwap = 0;
-    int attemptedTranslation = 0;
-    int rejectedTranslation = 0;
+    int acceptedTranslation = 0;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;
+    std::uniform_real_distribution<double> randomDouble;
 
 public:
     // Constructor
@@ -50,14 +50,16 @@ public:
     void AttemptTranslation();
     void AttemptSwap();
 
-    double CalculateEnergy(int index, Sphere sphere);
+    double CalculateEnergy(const int index, const Sphere sphere);
 
-    double PotentialWCA(double sigmaSummedRadius, double distanceBetweenSpheres) const;
+    double PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
 
-    double RadiusSumOf(Sphere sphere1, Sphere sphere2) const;
-    double DistanceBetween(Sphere sphere1, Sphere sphere2);
+    double RadiusSumOf(const Sphere sphere1, const Sphere sphere2) const;
+    double DistanceBetween(const Sphere sphere1, const Sphere sphere2);
 
-    void CorrectForPeriodicDistance(double &length);
+    void CorrectForPeriodicDistance(double& length);
+
+    bool IsChosenWithProbability(const double probabilityReference);
 };
 
 #endif
