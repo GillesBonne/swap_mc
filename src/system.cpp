@@ -161,6 +161,35 @@ void System::AttemptSwap()
             randomParticleIndex2 = ChooseRandomParticle();
         }
         while(randomParticleIndex1 == randomParticleIndex2);
+
+        double energy = CalculateEnergy(randomParticleIndex1, spheres[randomParticleIndex1])
+                            +CalculateEnergy(randomParticleIndex2, spheres[randomParticleIndex2]);
+
+        Sphere newSphere1 = spheres[randomParticleIndex1];
+        newSphere1.radius = spheres[randomParticleIndex2].radius;
+
+        Sphere newSphere2 = spheres[randomParticleIndex2];
+        newSphere2.radius = spheres[randomParticleIndex1].radius;
+
+        double energyNew = CalculateEnergy(randomParticleIndex1, newSphere1)
+                            +CalculateEnergy(randomParticleIndex2, newSphere2);
+
+        double energyDifference = energyNew - energy;
+
+        double acceptProbability = std::min(1.0,
+                        std::exp(-energyDifference/(boltzmannConstant * temperatureFixed)));
+
+        if(IsChosenWithProbability(acceptProbability))
+        {
+            spheres[randomParticleIndex1] = newSphere1;
+            spheres[randomParticleIndex2] = newSphere2;
+
+            acceptedSwaps++;
+        }
+        else
+        {
+            rejectedSwaps++;
+        }
     }
 }
 
@@ -177,7 +206,7 @@ double System::CalculateEnergy(const int index, const Sphere sphere)
     {
         if(i!=index)
         {
-            energy += PotentialWCA(RadiusSumOf(spheres[index],spheres[i]),
+            energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
         }
     }

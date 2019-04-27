@@ -16,9 +16,10 @@ int main()
 {
     // Record start time
     auto start = std::chrono::high_resolution_clock::now();
+
     Config config("data/config.txt");
 
-    int numIterations = 100000;
+    int numIterations = 10000;
 
     MonteCarlo(config, numIterations);
 
@@ -26,8 +27,6 @@ int main()
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     std::cout << "Elapsed time: " << elapsed.count() << " s" << std::endl;
-
-    return 0;
 }
 
 void MonteCarlo(Config config, int numIterations)
@@ -51,15 +50,19 @@ void MonteCarlo(Config config, int numIterations)
     double acceptanceFracTranslations = (double) acceptedTranslations/numIterations;
     std::cout<<"Attempted translations: "<<numIterations<<std::endl;
     std::cout<<"Accepted translations: "<<acceptedTranslations<<std::endl;
-    std::cout<<"Acceptance fraction: "<<acceptanceFracTranslations<<std::endl;
+    std::cout<<"Accepted/attempted swaps: "<<acceptanceFracTranslations<<std::endl;
 
     int acceptedSwaps = system.GetAcceptedSwaps();
     int rejectedSwaps = system.GetRejectedSwaps();
     int attemptedSwaps = acceptedSwaps + rejectedSwaps;
     double acceptanceFracSwaps = (double) acceptedSwaps/attemptedSwaps;
-    std::cout<<"Attempted translations: "<<attemptedSwaps<<std::endl;
-    std::cout<<"Accepted translations: "<<acceptedSwaps<<std::endl;
-    std::cout<<"Acceptance fraction: "<<acceptanceFracSwaps<<std::endl;
+    double totalAcceptanceFracSwaps = (double) acceptedSwaps/numIterations;
+    double actualSwapProbability = (double) attemptedSwaps/numIterations;
+    std::cout<<"Attempted swaps: "<<attemptedSwaps<<std::endl;
+    std::cout<<"Accepted swaps: "<<acceptedSwaps<<std::endl;
+    std::cout<<"Accepted/attempted swaps: "<<acceptanceFracSwaps<<std::endl;
+    std::cout<<"Accepted/numIterations: "<<totalAcceptanceFracSwaps<<std::endl;
+    std::cout<<"Actual swap probability: "<<actualSwapProbability<<std::endl;
 
     exportedStates = system.GetStates();
     Export2DVector(exportedStates);
