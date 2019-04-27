@@ -137,7 +137,6 @@ void System::AttemptTranslation()
 
     double energyNew = CalculateEnergy(randomParticleIndex, newSphere);
     double energyDifference = energyNew - energy;
-    std::cout<<"Energy diff: "<<energyDifference<<std::endl;
 }
 
 void System::AttemptSwap()
@@ -171,7 +170,7 @@ double System::CalculateEnergy(const int index, const Sphere sphere)
         if(i!=index)
         {
             energy += PotentialWCA(RadiusSumOf(spheres[index],spheres[i]),
-                    DistanceBetween(spheres[index],spheres[i]));
+                    DistanceBetween(sphere,spheres[i]));
         }
     }
     return energy;

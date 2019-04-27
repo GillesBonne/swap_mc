@@ -1,4 +1,4 @@
-numSpheres = 5
+numSpheres = 3
 ratioSizeSphere = 1.2
 numDensity = 1.0
 temperatureFixed = 0.25
