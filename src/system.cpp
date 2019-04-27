@@ -4,6 +4,7 @@
 #include <cmath>
 #include <random>
 #include <cassert>
+#include <algorithm>
 
 #include "system.h"
 #include "config.h"
@@ -17,7 +18,6 @@ System::System(Config config)
         temperatureFixed(config.GetTemperatureFixed()),
         swapProbability(config.GetSwapProbability()),
         maxTranslationDistanceInMaxParticleSize(config.GetMaxTranslationDistanceInMaxParticleSize()),
-        epsilonConstant(1),
         mersenneTwister((std::random_device())()),
         randomDouble(0,1),
         randomPosNegDouble(-1,1),
@@ -137,6 +137,16 @@ void System::AttemptTranslation()
 
     double energyNew = CalculateEnergy(randomParticleIndex, newSphere);
     double energyDifference = energyNew - energy;
+
+    double acceptProbability = std::min(1.0,
+                    std::exp(-energyDifference/(boltzmannConstant * temperatureFixed)));
+
+    if(IsChosenWithProbability(acceptProbability))
+    {
+        CorrectForPeriodicSphere(newSphere);
+        spheres[randomParticleIndex] = newSphere;
+        acceptedTranslations++;
+    }
 }
 
 void System::AttemptSwap()
@@ -151,8 +161,6 @@ void System::AttemptSwap()
             randomParticleIndex2 = ChooseRandomParticle();
         }
         while(randomParticleIndex1 == randomParticleIndex2);
-
-
     }
 }
 
@@ -225,6 +233,33 @@ void System::CorrectForPeriodicDistance(double& length)
         }
     negativeOutsideBoundary = (length < -0.5*lengthBox);
     positiveOutsideBoundary = (length > 0.5*lengthBox);
+    }
+    while(negativeOutsideBoundary || positiveOutsideBoundary);
+}
+
+void System::CorrectForPeriodicSphere(Sphere& sphere)
+{
+    CorrectForPeriodicCoordinate(sphere.position.x);
+    CorrectForPeriodicCoordinate(sphere.position.y);
+    CorrectForPeriodicCoordinate(sphere.position.z);
+}
+
+void System::CorrectForPeriodicCoordinate(double& coordinate)
+{
+    bool negativeOutsideBoundary = (coordinate < 0);
+    bool positiveOutsideBoundary = (coordinate >= lengthBox);
+    do
+    {
+        if(positiveOutsideBoundary)
+        {
+            coordinate -= lengthBox;
+        }
+        else if(negativeOutsideBoundary)
+        {
+            coordinate += lengthBox;
+        }
+        negativeOutsideBoundary = (coordinate < 0);
+        positiveOutsideBoundary = (coordinate >= lengthBox);
     }
     while(negativeOutsideBoundary || positiveOutsideBoundary);
 }

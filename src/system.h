@@ -24,14 +24,14 @@ private:
     const double maxTranslationDistanceInMaxParticleSize;
     double maxTranslationDistance;
 
-    const double epsilonConstant;
-
+    const double epsilonConstant = 1;
+    const double boltzmannConstant = 1;
 
     std::vector<Sphere> spheres;
 
+    int acceptedTranslations = 0;
     int acceptedSwaps = 0;
     int rejectedSwaps = 0;
-    int acceptedTranslations = 0;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;
@@ -60,6 +60,8 @@ public:
     double DistanceBetween(const Sphere sphere1, const Sphere sphere2);
 
     void CorrectForPeriodicDistance(double& length);
+    void CorrectForPeriodicSphere(Sphere& sphere);
+    void CorrectForPeriodicCoordinate(double& coordinate);
 
     bool IsChosenWithProbability(const double probabilityReference);
 

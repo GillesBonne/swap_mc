@@ -18,7 +18,7 @@ int main()
     auto start = std::chrono::high_resolution_clock::now();
     Config config("data/config.txt");
 
-    int numIterations = 1;
+    int numIterations = 100000;
 
     MonteCarlo(config, numIterations);
 
@@ -33,8 +33,6 @@ int main()
 void MonteCarlo(Config config, int numIterations)
 {
     System system(config);
-
-    system.PrintStates();
 
     std::vector<std::vector<double>> exportedStates = system.GetStates();
 
@@ -63,6 +61,7 @@ void MonteCarlo(Config config, int numIterations)
     std::cout<<"Accepted translations: "<<acceptedSwaps<<std::endl;
     std::cout<<"Acceptance fraction: "<<acceptanceFracSwaps<<std::endl;
 
+    exportedStates = system.GetStates();
     Export2DVector(exportedStates);
 }
 
