@@ -52,19 +52,20 @@ public:
 
     int ChooseRandomParticle();
 
-    double CalculateEnergy(const int index, const Sphere sphere);
+    double CalculateEnergy(const int index, const Sphere& sphere);
 
     double PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
 
-    double RadiusSumOf(const Sphere sphere1, const Sphere sphere2) const;
-    double DistanceBetween(const Sphere sphere1, const Sphere sphere2);
+    double RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const;
+    double DistanceBetween(const Sphere& sphere1, const Sphere& sphere2);
 
-    void CorrectForPeriodicDistance(double& length);
+    void CorrectForPeriodicDistance(double& length) const;
     void CorrectForPeriodicSphere(Sphere& sphere);
-    void CorrectForPeriodicCoordinate(double& coordinate);
+    void CorrectForPeriodicCoordinate(double& coordinate) const;
 
     bool IsChosenWithProbability(const double probabilityReference);
 
+    // Accessor functions
     int GetAcceptedTranslations() const;
     int GetAcceptedSwaps() const;
     int GetRejectedSwaps() const;

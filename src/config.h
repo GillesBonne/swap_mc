@@ -33,7 +33,6 @@ public:
     int GetNumSpheres() const;
     double GetRatioSizeSphere() const;
 
-    double GetNumDensity() const;
     double GetLengthBox() const;
     int GetLatticeWidth() const;
     double GetLatticeParameter() const;

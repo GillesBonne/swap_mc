@@ -19,7 +19,7 @@ int main()
 
     Config config("data/config.txt");
 
-    int numIterations = 10000;
+    int numIterations = 100000;
 
     MonteCarlo(config, numIterations);
 

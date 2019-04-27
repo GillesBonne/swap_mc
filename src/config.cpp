@@ -91,10 +91,6 @@ double Config::GetRatioSizeSphere() const
 {
     return ratioSizeSphere;
 }
-double Config::GetNumDensity() const
-{
-    return numDensity;
-}
 double Config::GetLengthBox() const
 {
     return lengthBox;

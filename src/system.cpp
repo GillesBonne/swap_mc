@@ -199,7 +199,7 @@ int System::ChooseRandomParticle()
     return randomParticleIndex;
 }
 
-double System::CalculateEnergy(const int index, const Sphere sphere)
+double System::CalculateEnergy(const int index, const Sphere& sphere)
 {
     double energy = 0;
     for(int i=0; i<numSpheres; ++i)
@@ -228,12 +228,12 @@ double System::PotentialWCA(const double sigmaSummedRadius, const double distanc
     return potential;
 }
 
-double System::RadiusSumOf(const Sphere sphere1, const Sphere sphere2) const
+double System::RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const
 {
     return sphere1.radius + sphere2.radius;
 }
 
-double System::DistanceBetween(const Sphere sphere1, const Sphere sphere2)
+double System::DistanceBetween(const Sphere& sphere1, const Sphere& sphere2)
 {
     double diffX = sphere1.position.x - sphere2.position.x;
     double diffY = sphere1.position.y - sphere2.position.y;
@@ -246,7 +246,7 @@ double System::DistanceBetween(const Sphere sphere1, const Sphere sphere2)
     return sqrt(diffX*diffX + diffY*diffY + diffZ*diffZ);
 }
 
-void System::CorrectForPeriodicDistance(double& length)
+void System::CorrectForPeriodicDistance(double& length) const
 {
     bool negativeOutsideBoundary = (length < -0.5*lengthBox);
     bool positiveOutsideBoundary = (length > 0.5*lengthBox);
@@ -273,7 +273,7 @@ void System::CorrectForPeriodicSphere(Sphere& sphere)
     CorrectForPeriodicCoordinate(sphere.position.z);
 }
 
-void System::CorrectForPeriodicCoordinate(double& coordinate)
+void System::CorrectForPeriodicCoordinate(double& coordinate) const
 {
     bool negativeOutsideBoundary = (coordinate < 0);
     bool positiveOutsideBoundary = (coordinate >= lengthBox);
