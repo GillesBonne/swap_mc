@@ -22,6 +22,7 @@ private:
 
     const double swapProbability;
     const double maxTranslationDistanceInMaxParticleSize;
+    double maxRadiusSphere;
     double maxTranslationDistance;
 
     const double epsilonConstant = 1;
@@ -69,6 +70,8 @@ public:
     int GetAcceptedTranslations() const;
     int GetAcceptedSwaps() const;
     int GetRejectedSwaps() const;
+
+    std::vector<std::vector<double>> GetRadialDistributionFunction();
 };
 
 #endif

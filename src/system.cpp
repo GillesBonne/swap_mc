@@ -26,7 +26,7 @@ System::System(Config config)
     assert(numSpheres > 1);
     assert(std::pow(latticeWidth,3) >= numSpheres);
 
-    double maxRadiusSphere = latticeParameter/2;
+    maxRadiusSphere = latticeParameter/2;
     double minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
 
     // Max tranlationdistances should be such that translation acceptance is between 30-40%
@@ -320,4 +320,42 @@ int System::GetAcceptedSwaps() const
 int System::GetRejectedSwaps() const
 {
     return rejectedSwaps;
+}
+
+std::vector<std::vector<double>> System::GetRadialDistributionFunction()
+{
+    std::vector<std::vector<double>> radialDistribution;
+
+    double dRadial = 0.1*maxRadiusSphere;
+    int numRadialDistances = 0.5 * lengthBox / dRadial;
+
+    double maxRadial = 0.5 * lengthBox - dRadial;
+
+    radialDistribution.reserve(numRadialDistances);
+    std::vector<double> radialDensity(2);
+
+    int randomParticleIndex = ChooseRandomParticle();
+    int particleCounter;
+    int distanceParticle;
+    for(int i=0; i<numRadialDistances; ++i)
+    {
+        particleCounter = 0;
+        radialDensity[0] = (double) i * maxRadial/numRadialDistances;
+
+        for(int j=0; j<numSpheres; ++j)
+        {
+            if(j!=randomParticleIndex)
+            {
+                distanceParticle = DistanceBetween(spheres[randomParticleIndex],spheres[j]);
+                if((distanceParticle >= radialDensity[0])
+                        && (distanceParticle <= radialDensity[0]+dRadial))
+                {
+                    ++particleCounter;
+                }
+            }
+            radialDensity[1] = particleCounter;
+        }
+    radialDistribution.push_back(radialDensity);
+    }
+    return radialDistribution;
 }

@@ -11,6 +11,7 @@
 
 void MonteCarlo(Config config, int numIterations);
 void Export2DVector(std::vector<std::vector<double>> &vector2D);
+void Export2DVectorRadial(std::vector<std::vector<double>> &vector2D);
 
 int main()
 {
@@ -19,7 +20,7 @@ int main()
 
     Config config("data/config.txt");
 
-    int numIterations = 100000;
+    int numIterations = 1000000;
 
     MonteCarlo(config, numIterations);
 
@@ -50,7 +51,7 @@ void MonteCarlo(Config config, int numIterations)
     double acceptanceFracTranslations = (double) acceptedTranslations/numIterations;
     std::cout<<"Attempted translations: "<<numIterations<<std::endl;
     std::cout<<"Accepted translations: "<<acceptedTranslations<<std::endl;
-    std::cout<<"Accepted/attempted swaps: "<<acceptanceFracTranslations<<std::endl;
+    std::cout<<"Accepted/attempted translations: "<<acceptanceFracTranslations<<std::endl;
 
     int acceptedSwaps = system.GetAcceptedSwaps();
     int rejectedSwaps = system.GetRejectedSwaps();
@@ -66,6 +67,9 @@ void MonteCarlo(Config config, int numIterations)
 
     exportedStates = system.GetStates();
     Export2DVector(exportedStates);
+
+    std::vector<std::vector<double>> exportedRadial = system.GetRadialDistributionFunction();
+    Export2DVectorRadial(exportedRadial);
 }
 
 void Export2DVector(std::vector<std::vector<double>> &vector2D)
@@ -77,6 +81,24 @@ void Export2DVector(std::vector<std::vector<double>> &vector2D)
         {
             outFile << vector1D[i];
             if(i==3)
+            {
+                break;
+            }
+            outFile << ",";
+        }
+        outFile << "\n";
+    }
+}
+
+void Export2DVectorRadial(std::vector<std::vector<double>> &vector2D)
+{
+    std::ofstream outFile("data/outputRadial.txt", std::ios_base::trunc);
+    for(std::vector<double> vector1D : vector2D)
+    {
+        for(int i=0; i<2; ++i)
+        {
+            outFile << vector1D[i];
+            if(i==1)
             {
                 break;
             }
