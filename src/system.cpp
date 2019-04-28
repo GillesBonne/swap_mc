@@ -9,7 +9,7 @@
 #include "system.h"
 #include "config.h"
 
-System::System(Config config)
+System::System(const Config& config)
     :   numSpheres(config.GetNumSpheres()),
         ratioSizeSphere(config.GetRatioSizeSphere()),
         lengthBox(config.GetLengthBox()),
@@ -62,12 +62,12 @@ System::System(Config config)
                         if(numPlacedSmallSpheres<numSmallSpheres)
                         {
                             sphere.radius = minRadiusSphere;
-                            numPlacedSmallSpheres++;
+                            ++numPlacedSmallSpheres;
                         }
                         else
                         {
                             sphere.radius = maxRadiusSphere;
-                            numPlacedLargeSpheres++;
+                            ++numPlacedLargeSpheres;
                         }
                     }
                     else if(randomRadius==1)
@@ -75,12 +75,12 @@ System::System(Config config)
                         if(numPlacedLargeSpheres<numLargeSpheres)
                         {
                             sphere.radius = maxRadiusSphere;
-                            numPlacedLargeSpheres++;
+                            ++numPlacedLargeSpheres;
                         }
                         else
                         {
                             sphere.radius = minRadiusSphere;
-                            numPlacedSmallSpheres++;
+                            ++numPlacedSmallSpheres;
                         }
                     }
                     spheres.push_back(sphere);
@@ -92,19 +92,6 @@ System::System(Config config)
                 ++numPlacedSpheres;
             }
         }
-    }
-}
-
-void System::PrintStates() const
-{
-    for(Sphere sphere : spheres)
-    {
-        std::cout<<"(x,y,z)=("
-            <<sphere.position.x<<","
-            <<sphere.position.y<<","
-            <<sphere.position.z<<")   "
-            <<"r="<<sphere.radius
-            <<std::endl;
     }
 }
 
@@ -145,7 +132,7 @@ void System::AttemptTranslation()
     {
         CorrectForPeriodicSphere(newSphere);
         spheres[randomParticleIndex] = newSphere;
-        acceptedTranslations++;
+        ++acceptedTranslations;
     }
 }
 
@@ -184,11 +171,11 @@ void System::AttemptSwap()
             spheres[randomParticleIndex1] = newSphere1;
             spheres[randomParticleIndex2] = newSphere2;
 
-            acceptedSwaps++;
+            ++acceptedSwaps;
         }
         else
         {
-            rejectedSwaps++;
+            ++rejectedSwaps;
         }
     }
 }
@@ -335,11 +322,10 @@ std::vector<std::vector<double>> System::GetRadialDistributionFunction()
     std::vector<double> radialDensity(2);
 
     int randomParticleIndex = ChooseRandomParticle();
-    int particleCounter;
     int distanceParticle;
     for(int i=0; i<numRadialDistances; ++i)
     {
-        particleCounter = 0;
+        int particleCounter = 0;
         radialDensity[0] = (double) i * maxRadial/numRadialDistances;
 
         for(int j=0; j<numSpheres; ++j)

@@ -42,7 +42,7 @@ private:
 
 public:
     // Constructor
-    System(Config config);
+    System(const Config& config);
 
     int FindLatticeWidth() const;
     void PrintStates() const;

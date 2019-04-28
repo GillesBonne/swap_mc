@@ -5,7 +5,7 @@
 #include <cmath>
 #include "config.h"
 
-Config::Config(std::string _configFile) : configFile(_configFile)
+Config::Config(const std::string _configFile) : configFile(_configFile)
 {
     std::ifstream inFile(configFile);
 
@@ -19,6 +19,8 @@ Config::Config(std::string _configFile) : configFile(_configFile)
     std::string maxTranslationDistanceInMaxParticleSizeString;
 
     std::string swapProbabilityString;
+
+    std::string numIterationsString;
 
     // Read contents of config file and assigns it to the corresponding member variables.
     if (inFile.is_open())
@@ -56,6 +58,10 @@ Config::Config(std::string _configFile) : configFile(_configFile)
             {
                 swapProbabilityString = value;
             }
+            else if(name=="numIterations")
+            {
+                numIterationsString = value;
+            }
         }
     }
     numSpheres = std::stoi(numSpheresString);
@@ -70,6 +76,8 @@ Config::Config(std::string _configFile) : configFile(_configFile)
 
     latticeWidth = FindLatticeWidth();
     latticeParameter = lengthBox / latticeWidth;
+
+    numIterations = std::stoi(numIterationsString);
 }
 
 int Config::FindLatticeWidth() const
@@ -114,4 +122,8 @@ double Config::GetMaxTranslationDistanceInMaxParticleSize() const
 double Config::GetSwapProbability() const
 {
     return swapProbability;
+}
+int Config::GetNumIterations() const
+{
+    return numIterations;
 }

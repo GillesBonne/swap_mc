@@ -12,7 +12,7 @@ for line in file:
     y.append(float(line_split[1]))
     z.append(float(line_split[2]))
     radius.append(float(line_split[3]))
-    
+
 configfile = open("config.txt","r")
 for line_individual in configfile:
     line = line_individual.replace(" ", "")

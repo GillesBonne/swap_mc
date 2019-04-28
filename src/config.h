@@ -23,9 +23,11 @@ private:
     double maxTranslationDistanceInMaxParticleSize;
 
     double swapProbability;
+
+    int numIterations;
 public:
     // Constructor
-    Config(std::string _configFile);
+    Config(const std::string _configFile);
 
     int FindLatticeWidth() const;
 
@@ -42,6 +44,8 @@ public:
     double GetMaxTranslationDistanceInMaxParticleSize() const;
 
     double GetSwapProbability() const;
+
+    int GetNumIterations() const;
 };
 
 #endif
