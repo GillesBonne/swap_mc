@@ -5,7 +5,7 @@ y = []
 z = []
 radius = []
 
-file = open("outputStates.txt","r")
+file = open("../../data/outputStates.txt","r")
 for line in file:
     line_split = line.split(",")
     x.append(float(line_split[0]))
@@ -13,7 +13,7 @@ for line in file:
     z.append(float(line_split[2]))
     radius.append(float(line_split[3]))
 
-configfile = open("config.txt","r")
+configfile = open("../../config.txt","r")
 for line_individual in configfile:
     line = line_individual.replace(" ", "")
     line_split = line.split("=")

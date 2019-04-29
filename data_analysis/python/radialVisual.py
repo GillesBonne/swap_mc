@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 r = []
 g = []
 
-file = open("outputRadial.txt","r")
+file = open("../../data/outputRadial.txt","r")
 for line in file:
     line_split = line.split(",")
     r.append(float(line_split[0]))

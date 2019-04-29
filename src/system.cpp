@@ -326,22 +326,23 @@ std::vector<std::vector<double>> System::GetRadialDistributionFunction()
     for(int i=0; i<numRadialDistances; ++i)
     {
         int particleCounter = 0;
-        radialDensity[0] = (double) i * maxRadial/numRadialDistances;
+        double radial = (double) i * maxRadial/numRadialDistances;
+        radialDensity[0] = radial;
 
         for(int j=0; j<numSpheres; ++j)
         {
             if(j!=randomParticleIndex)
             {
                 distanceParticle = DistanceBetween(spheres[randomParticleIndex],spheres[j]);
-                if((distanceParticle >= radialDensity[0])
-                        && (distanceParticle <= radialDensity[0]+dRadial))
+                if((distanceParticle >= radial)
+                        && (distanceParticle <= (radial+dRadial)))
                 {
                     ++particleCounter;
                 }
             }
-            radialDensity[1] = particleCounter;
         }
-    radialDistribution.push_back(radialDensity);
+        radialDensity[1] = particleCounter;
+        radialDistribution.push_back(radialDensity);
     }
     return radialDistribution;
 }
