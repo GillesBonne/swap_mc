@@ -16,7 +16,7 @@ int main()
 {
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    Config config("data/config.txt");
+    Config config("config.txt");
 
     MonteCarlo(config);
 
@@ -40,11 +40,13 @@ void MonteCarlo(Config config)
     }
     PrintAcceptanceInfo(system, numIterations);
 
+    ClearContents("data/outputStates.txt");
     std::vector<std::vector<double>> exportedStates = system.GetStates();
-    Export2D(exportedStates, "data/outputStates.txt");
+    Export2D(exportedStates, "data/outputStates.txt", numIterations);
 
+    ClearContents("data/outputRadial.txt");
     std::vector<std::vector<double>> exportedRadial = system.GetRadialDistributionFunction();
-    Export2D(exportedRadial, "data/outputRadial.txt");
+    Export2D(exportedRadial, "data/outputRadial.txt", numIterations);
 }
 
 void PrintAcceptanceInfo(const System& system, int numIterations)

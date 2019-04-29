@@ -6,12 +6,19 @@ z = []
 radius = []
 
 file = open("../../data/outputStates.txt","r")
+iteration_on_line = False
 for line in file:
-    line_split = line.split(",")
-    x.append(float(line_split[0]))
-    y.append(float(line_split[1]))
-    z.append(float(line_split[2]))
-    radius.append(float(line_split[3]))
+    if iteration_on_line:
+        iteration = int(line)
+        iteration_on_line = False;
+    elif line[0]=="i":
+        iteration_on_line = True;
+    else:
+        line_split = line.split(",")
+        x.append(float(line_split[0]))
+        y.append(float(line_split[1]))
+        z.append(float(line_split[2]))
+        radius.append(float(line_split[3]))
 
 configfile = open("../../config.txt","r")
 for line_individual in configfile:

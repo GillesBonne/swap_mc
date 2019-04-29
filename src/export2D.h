@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
-void Export2D(const std::vector<std::vector<double>> &vector2D, const std::string& filePath);
+void ClearContents(const std::string& filePath);
+void Export2D(const std::vector<std::vector<double>> &vector2D,
+        const std::string& filePath,
+        const int iteration);
 
 #endif
