@@ -3,6 +3,10 @@
 #include <iostream>
 #include <chrono>
 #include <cassert>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <array>
 
 #include "system.h"
 #include "config.h"
@@ -11,12 +15,16 @@
 
 void MonteCarlo(Config config);
 void PrintAcceptanceInfo(const System& system, int numIterations);
+void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
 
 int main()
 {
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    Config config("config.txt");
+    std::string configFile = "config.txt";
+    Config config(configFile);
+
+    CopyFile(configFile, "data/lastConfig.txt");
 
     MonteCarlo(config);
 
@@ -30,31 +38,54 @@ void MonteCarlo(Config config)
     System system(config);
 
     int numIterations = config.GetNumIterations();
+
+    std::string outputStatesFile = "data/outputStates.txt";
+    ClearContents(outputStatesFile);
+    std::vector<std::vector<double>> exportedStates;
+
+    std::vector<int> iterations;
+    std::vector<double> totalEnergy;
+
+    int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
+        if(i%10000==0)
+        {
+            exportedStates = system.GetStates();
+            Export2D(exportedStates, outputStatesFile, i);
+
+            iterations.push_back(i);
+            totalEnergy.push_back(system.GetTotalEnergy());
+        }
+
         if(config.GetSwapProbability() > 0)
         {
             system.AttemptSwap();
         }
+
         system.AttemptTranslation();
+
+
+        if(i%((int) (numIterations-1)/10 )==0)
+        {
+            if(i!=0)
+            {
+                progress = 100*i/(numIterations-1);
+                std::cout<<progress<<"%"<<std::endl;
+            }
+        }
     }
+
+    Export1D(iterations, "data/iterations.txt");
+    Export1D(totalEnergy, "data/energy.txt");
+
     PrintAcceptanceInfo(system, numIterations);
-
-    ClearContents("data/outputStates.txt");
-    std::vector<std::vector<double>> exportedStates = system.GetStates();
-    Export2D(exportedStates, "data/outputStates.txt", numIterations);
-
-    ClearContents("data/outputRadial.txt");
-    std::vector<std::vector<double>> exportedRadial = system.GetRadialDistributionFunction();
-    Export2D(exportedRadial, "data/outputRadial.txt", numIterations);
 }
 
 void PrintAcceptanceInfo(const System& system, int numIterations)
 {
     int acceptedTranslations = system.GetAcceptedTranslations();
     double acceptanceFracTranslations = (double) acceptedTranslations/numIterations;
-    std::cout<<"Attempted translations: "<<numIterations<<std::endl;
-    std::cout<<"Accepted translations: "<<acceptedTranslations<<std::endl;
     std::cout<<"Accepted/attempted translations: "<<acceptanceFracTranslations<<std::endl;
 
     int acceptedSwaps = system.GetAcceptedSwaps();
@@ -62,10 +93,23 @@ void PrintAcceptanceInfo(const System& system, int numIterations)
     int attemptedSwaps = acceptedSwaps + rejectedSwaps;
     double acceptanceFracSwaps = (double) acceptedSwaps/attemptedSwaps;
     double totalAcceptanceFracSwaps = (double) acceptedSwaps/numIterations;
-    double actualSwapProbability = (double) attemptedSwaps/numIterations;
-    std::cout<<"Attempted swaps: "<<attemptedSwaps<<std::endl;
-    std::cout<<"Accepted swaps: "<<acceptedSwaps<<std::endl;
     std::cout<<"Accepted/attempted swaps: "<<acceptanceFracSwaps<<std::endl;
     std::cout<<"Accepted/numIterations: "<<totalAcceptanceFracSwaps<<std::endl;
-    std::cout<<"Actual swap probability: "<<actualSwapProbability<<std::endl;
+}
+
+void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
+{
+    std::ifstream inFile(sourceFile);
+    std::ofstream outFileClear(destinationFile, std::ios_base::trunc);
+    std::ofstream outFile(destinationFile, std::ios_base::app);
+    if(inFile.is_open())
+    {
+        std::string line;
+        while(getline(inFile, line))
+        {
+            outFile << line;
+            outFile << "\n";
+        }
+    }
+
 }

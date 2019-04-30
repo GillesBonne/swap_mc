@@ -71,7 +71,7 @@ public:
     int GetAcceptedSwaps() const;
     int GetRejectedSwaps() const;
 
-    std::vector<std::vector<double>> GetRadialDistributionFunction();
+    double GetTotalEnergy();
 };
 
 #endif

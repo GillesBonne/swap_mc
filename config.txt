@@ -1,4 +1,4 @@
-numIterations = 1000000
+numIterations = 1000001
 numSpheres = 27
 ratioSizeSphere = 1.2
 numDensity = 1.0

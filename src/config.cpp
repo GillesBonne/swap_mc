@@ -26,7 +26,8 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     if (inFile.is_open())
     {
         std::string line;
-        while(getline(inFile, line)){
+        while(getline(inFile, line))
+        {
             line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
             if(line[0] == '#' || line.empty())
                 continue;

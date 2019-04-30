@@ -309,40 +309,14 @@ int System::GetRejectedSwaps() const
     return rejectedSwaps;
 }
 
-std::vector<std::vector<double>> System::GetRadialDistributionFunction()
+double System::GetTotalEnergy()
 {
-    std::vector<std::vector<double>> radialDistribution;
+    double energy = 0;
 
-    double dRadial = 0.1*maxRadiusSphere;
-    int numRadialDistances = 0.5 * lengthBox / dRadial;
-
-    double maxRadial = 0.5 * lengthBox - dRadial;
-
-    radialDistribution.reserve(numRadialDistances);
-    std::vector<double> radialDensity(2);
-
-    int randomParticleIndex = ChooseRandomParticle();
-    int distanceParticle;
-    for(int i=0; i<numRadialDistances; ++i)
+    for(int i=0; i<numSpheres; ++i)
     {
-        int particleCounter = 0;
-        double radial = (double) i * maxRadial/numRadialDistances;
-        radialDensity[0] = radial;
-
-        for(int j=0; j<numSpheres; ++j)
-        {
-            if(j!=randomParticleIndex)
-            {
-                distanceParticle = DistanceBetween(spheres[randomParticleIndex],spheres[j]);
-                if((distanceParticle >= radial)
-                        && (distanceParticle <= (radial+dRadial)))
-                {
-                    ++particleCounter;
-                }
-            }
-        }
-        radialDensity[1] = particleCounter;
-        radialDistribution.push_back(radialDensity);
+        energy += CalculateEnergy(i, spheres[i]);
     }
-    return radialDistribution;
+
+    return energy;
 }
