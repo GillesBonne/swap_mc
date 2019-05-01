@@ -46,6 +46,11 @@ void MonteCarlo(Config config)
     std::vector<int> iterations;
     std::vector<double> totalEnergy;
 
+    int prevAcceptedSwaps = 0;
+    int prevAcceptedTranslations = 0;
+    std::vector<double> swapAcceptance;
+    std::vector<double> translationAcceptance;
+
     int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
@@ -56,6 +61,11 @@ void MonteCarlo(Config config)
 
             iterations.push_back(i);
             totalEnergy.push_back(system.GetTotalEnergy());
+
+            swapAcceptance.push_back(system.GetAcceptedSwaps()-prevAcceptedSwaps);
+            translationAcceptance.push_back(system.GetAcceptedTranslations()-prevAcceptedTranslations);
+            prevAcceptedSwaps = system.GetAcceptedSwaps();
+            prevAcceptedTranslations = system.GetAcceptedTranslations();
         }
 
         if(config.GetSwapProbability() > 0)
@@ -78,6 +88,8 @@ void MonteCarlo(Config config)
 
     Export1D(iterations, "data/iterations.txt");
     Export1D(totalEnergy, "data/energy.txt");
+    Export1D(swapAcceptance, "data/swapAcceptance.txt");
+    Export1D(translationAcceptance, "data/translationAcceptance.txt");
 
     PrintAcceptanceInfo(system, numIterations);
 }

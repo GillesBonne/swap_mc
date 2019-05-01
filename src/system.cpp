@@ -203,13 +203,14 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
 double System::PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
 {
     double potential;
-    if(distanceBetweenSpheres > pow(2, (double) 1/6)*sigmaSummedRadius)
+    const double cutOffDistance = 1.12246204831;
+    if(distanceBetweenSpheres > cutOffDistance * sigmaSummedRadius)
     {
         potential = 0;
     }
     else
     {
-        potential = 4 * epsilonConstant * (1 - pow((sigmaSummedRadius/distanceBetweenSpheres),6)
+        potential = epsilonConstant + 4 * epsilonConstant * (- pow((sigmaSummedRadius/distanceBetweenSpheres),6)
                                         + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
     }
     return potential;
