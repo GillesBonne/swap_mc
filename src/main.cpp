@@ -1,7 +1,6 @@
 // Place #define NDEBUG if asserts should not be evaluated.
 
 #include <iostream>
-#include <chrono>
 #include <cassert>
 #include <string>
 #include <fstream>
@@ -10,6 +9,7 @@
 
 #include "system.h"
 #include "config.h"
+#include "timer.h"
 
 #include "export2D.h"
 
@@ -19,7 +19,7 @@ void CopyFile(const std::string& sourcePath, const std::string& destinationPath)
 
 int main()
 {
-    auto startTime = std::chrono::high_resolution_clock::now();
+    Timer timer;
 
     std::string configFile = "config.txt";
     Config config(configFile);
@@ -27,10 +27,6 @@ int main()
     CopyFile(configFile, "data/lastConfig.txt");
 
     MonteCarlo(config);
-
-    auto finishTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsedTime = finishTime - startTime;
-    std::cout << "Elapsed time: " << elapsedTime.count() << " s" << std::endl;
 }
 
 void MonteCarlo(Config config)
@@ -45,6 +41,7 @@ void MonteCarlo(Config config)
 
     std::vector<int> iterations;
     std::vector<double> totalEnergy;
+    std::vector<double> pressure;
 
     int prevAcceptedSwaps = 0;
     int prevAcceptedTranslations = 0;
@@ -54,13 +51,15 @@ void MonteCarlo(Config config)
     int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
-        if(i%10000==0)
+        if(i%10000==0 && i!=0)
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, i);
 
             iterations.push_back(i);
             totalEnergy.push_back(system.GetTotalEnergy());
+
+            pressure.push_back(system.GetPressure());
 
             swapAcceptance.push_back(system.GetAcceptedSwaps()-prevAcceptedSwaps);
             translationAcceptance.push_back(system.GetAcceptedTranslations()-prevAcceptedTranslations);
@@ -88,6 +87,7 @@ void MonteCarlo(Config config)
 
     Export1D(iterations, "data/iterations.txt");
     Export1D(totalEnergy, "data/energy.txt");
+    Export1D(pressure, "data/pressure.txt");
     Export1D(swapAcceptance, "data/swapAcceptance.txt");
     Export1D(translationAcceptance, "data/translationAcceptance.txt");
 

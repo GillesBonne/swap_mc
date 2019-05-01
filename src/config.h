@@ -35,6 +35,7 @@ public:
     int GetNumSpheres() const;
     double GetRatioSizeSphere() const;
 
+    double GetVolumeBox() const;
     double GetLengthBox() const;
     int GetLatticeWidth() const;
     double GetLatticeParameter() const;
@@ -46,6 +47,8 @@ public:
     double GetSwapProbability() const;
 
     int GetNumIterations() const;
+
+    double GetNumDensity() const;
 };
 
 #endif

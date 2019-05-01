@@ -100,6 +100,10 @@ double Config::GetRatioSizeSphere() const
 {
     return ratioSizeSphere;
 }
+double Config::GetVolumeBox() const
+{
+    return volumeBox;
+}
 double Config::GetLengthBox() const
 {
     return lengthBox;
@@ -127,4 +131,8 @@ double Config::GetSwapProbability() const
 int Config::GetNumIterations() const
 {
     return numIterations;
+}
+double Config::GetNumDensity() const
+{
+    return numDensity;
 }

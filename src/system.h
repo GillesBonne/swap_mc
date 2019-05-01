@@ -14,6 +14,7 @@ private:
     const int numSpheres;
     const double ratioSizeSphere;
 
+    const double volumeBox;
     const double lengthBox;
     const int latticeWidth;
     const double latticeParameter;
@@ -24,6 +25,8 @@ private:
     const double maxTranslationDistanceInMaxParticleSize;
     double maxRadiusSphere;
     double maxTranslationDistance;
+
+    const double numDensity;
 
     const double epsilonConstant = 1;
     const double boltzmannConstant = 1;
@@ -72,6 +75,12 @@ public:
     int GetRejectedSwaps() const;
 
     double GetTotalEnergy();
+
+    double GetPressure();
+
+    double DistanceBetweenCoordinates(double coordinate1, double coordinate2);
+
+    double ForceWCA(double difference, double sigmaSummedRadius);
 };
 
 #endif

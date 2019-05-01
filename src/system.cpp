@@ -12,12 +12,14 @@
 System::System(const Config& config)
     :   numSpheres(config.GetNumSpheres()),
         ratioSizeSphere(config.GetRatioSizeSphere()),
+        volumeBox(config.GetVolumeBox()),
         lengthBox(config.GetLengthBox()),
         latticeWidth(config.GetLatticeWidth()),
         latticeParameter(config.GetLatticeParameter()),
         temperatureFixed(config.GetTemperatureFixed()),
         swapProbability(config.GetSwapProbability()),
         maxTranslationDistanceInMaxParticleSize(config.GetMaxTranslationDistanceInMaxParticleSize()),
+        numDensity(config.GetNumDensity()),
         mersenneTwister((std::random_device())()),
         randomDouble(0,1),
         randomPosNegDouble(-1,1),
@@ -313,11 +315,68 @@ int System::GetRejectedSwaps() const
 double System::GetTotalEnergy()
 {
     double energy = 0;
-
     for(int i=0; i<numSpheres; ++i)
     {
-        energy += CalculateEnergy(i, spheres[i]);
+        energy += 0.5 * CalculateEnergy(i, spheres[i]);
     }
-
     return energy;
+}
+
+double System::GetPressure()
+{
+    const int dimensionality = 3;
+    double pressure = 0;
+
+    double xDiff;
+    double yDiff;
+    double zDiff;
+    double sigmaSummedRadius;
+    double xForce;
+    double yForce;
+    double zForce;
+    for(int i=0; i < (numSpheres-1); ++i)
+    {
+        for(int j=i+1; j < numSpheres; ++j)
+        {
+            xDiff = DistanceBetweenCoordinates(spheres[i].position.x,
+                                                 spheres[j].position.x);
+            yDiff = DistanceBetweenCoordinates(spheres[i].position.y,
+                                                 spheres[j].position.y);
+            zDiff = DistanceBetweenCoordinates(spheres[i].position.z,
+                                                 spheres[j].position.z);
+            sigmaSummedRadius = RadiusSumOf(spheres[i],spheres[j]);
+            xForce = ForceWCA(xDiff, sigmaSummedRadius);
+            yForce = ForceWCA(yDiff, sigmaSummedRadius);
+            zForce = ForceWCA(zDiff, sigmaSummedRadius);
+
+            pressure += xDiff*xForce + yDiff*yForce + zDiff*zForce;
+        }
+    }
+    pressure /= (dimensionality * volumeBox);
+    pressure += numDensity * temperatureFixed * boltzmannConstant;
+
+    return pressure;
+}
+
+double System::DistanceBetweenCoordinates(double coordinate1, double coordinate2)
+{
+    double difference = coordinate2 - coordinate1;
+    CorrectForPeriodicDistance(difference);
+    return difference;
+}
+
+double System::ForceWCA(double difference, double sigmaSummedRadius)
+{
+    double force;
+    const double cutOffDistance = 1.12246204831 * sigmaSummedRadius;
+    if(difference > cutOffDistance || difference < -cutOffDistance)
+    {
+        force = 0;
+    }
+    else
+    {
+        force = - 24 * epsilonConstant *
+            (pow(sigmaSummedRadius*difference,6) - 2*pow(sigmaSummedRadius,12))/(pow(difference,13));
+    }
+    return force;
 }
