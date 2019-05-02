@@ -205,8 +205,8 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
 double System::PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
 {
     double potential;
-    const double cutOffDistance = 1.12246204831;
-    if(distanceBetweenSpheres > cutOffDistance * sigmaSummedRadius)
+    const double cutOffDistance = 1.12246204831 * sigmaSummedRadius;
+    if(distanceBetweenSpheres > cutOffDistance)
     {
         potential = 0;
     }
@@ -334,6 +334,7 @@ double System::GetPressure()
     double xForce;
     double yForce;
     double zForce;
+    double distanceSquaredBetween;
     for(int i=0; i < (numSpheres-1); ++i)
     {
         for(int j=i+1; j < numSpheres; ++j)
@@ -344,10 +345,11 @@ double System::GetPressure()
                                                  spheres[j].position.y);
             zDiff = DistanceBetweenCoordinates(spheres[i].position.z,
                                                  spheres[j].position.z);
+            distanceSquaredBetween = xDiff*xDiff+yDiff*yDiff+zDiff*zDiff;
             sigmaSummedRadius = RadiusSumOf(spheres[i],spheres[j]);
-            xForce = ForceWCA(xDiff, sigmaSummedRadius);
-            yForce = ForceWCA(yDiff, sigmaSummedRadius);
-            zForce = ForceWCA(zDiff, sigmaSummedRadius);
+            xForce = ForceWCA(xDiff, distanceSquaredBetween, sigmaSummedRadius);
+            yForce = ForceWCA(yDiff, distanceSquaredBetween, sigmaSummedRadius);
+            zForce = ForceWCA(zDiff, distanceSquaredBetween, sigmaSummedRadius);
 
             pressure += xDiff*xForce + yDiff*yForce + zDiff*zForce;
         }
@@ -365,18 +367,19 @@ double System::DistanceBetweenCoordinates(double coordinate1, double coordinate2
     return difference;
 }
 
-double System::ForceWCA(double difference, double sigmaSummedRadius)
+double System::ForceWCA(double difference, double SqDistance, double sigmaSummedRadius)
 {
     double force;
     const double cutOffDistance = 1.12246204831 * sigmaSummedRadius;
-    if(difference > cutOffDistance || difference < -cutOffDistance)
+    if(SqDistance > (cutOffDistance*cutOffDistance))
     {
         force = 0;
     }
     else
     {
-        force = - 24 * epsilonConstant *
-            (pow(sigmaSummedRadius*difference,6) - 2*pow(sigmaSummedRadius,12))/(pow(difference,13));
+        force = 24 * epsilonConstant * difference * pow(sigmaSummedRadius, 6)
+            * (2*pow(sigmaSummedRadius, 6)-SqDistance*SqDistance*SqDistance)
+            / (pow(SqDistance,7));
     }
     return force;
 }

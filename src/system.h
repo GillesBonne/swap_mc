@@ -80,7 +80,7 @@ public:
 
     double DistanceBetweenCoordinates(double coordinate1, double coordinate2);
 
-    double ForceWCA(double difference, double sigmaSummedRadius);
+    double ForceWCA(double difference, double distanceBetween, double sigmaSummedRadius);
 };
 
 #endif

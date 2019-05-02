@@ -51,7 +51,7 @@ void MonteCarlo(Config config)
     int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
-        if(i%10000==0 && i!=0)
+        if(i%10000==0)
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, i);
