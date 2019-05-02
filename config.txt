@@ -1,5 +1,5 @@
-numIterations = 100001
-numSpheres = 1000
+numIterations = 10001
+numSpheres = 125
 ratioSizeSphere = 1.2
 numDensity = 1.0
 temperatureFixed = 0.25
