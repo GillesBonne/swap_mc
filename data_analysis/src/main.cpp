@@ -22,79 +22,73 @@ int main()
     std::vector<std::vector<double>> spherePositions;
     spherePositions = states.GetSample(1);
 
-    for(std::vector<double> spherePosition : spherePositions)
-    {
-        for(double pos : spherePosition)
-        {
-            std::cout<<pos<<", ";
-        }
-        std::cout<<std::endl;
-    }
-
-
-    spherePositions = states.GetSample(maxSampleIndex);
-
-    for(std::vector<double> spherePosition : spherePositions)
-    {
-        for(double pos : spherePosition)
-        {
-            std::cout<<pos<<", ";
-        }
-        std::cout<<std::endl;
-    }
-
-    std::cout<<std::endl;
-    std::cout<<spherePositions[2][0]<<std::endl;
-    std::cout<<std::endl;
-
     RadialDistributionFunction(spherePositions, lastConfig);
 }
 
 void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePositions,
                                 Config lastConfig)
 {
+    const double PI = 3.14159265;
+
     const int numSpheres = lastConfig.GetNumSpheres();
 
-    const double maxRadiusSphere = 0.5 * lastConfig.GetLatticeParameter();
-    const double binSize = 0.1 * maxRadiusSphere;
+    const double maxDiameterSphere = lastConfig.GetLatticeParameter();
+    const double binSize = 0.1 * maxDiameterSphere;
 
     const double lengthBox = lastConfig.GetLengthBox();
+    std::cout<<lengthBox<<std::endl;
 
-    int numBins = ceil(0.5*lengthBox/binSize);
+    // Max distance from a point with periodic boundary conditions
+    double maxDistance = sqrt(1) * 0.5 * lengthBox;
+    int numBins = ceil(maxDistance/binSize);
 
-    std::vector<int> bins(numBins);
-
-    std::cout<<"numBins"<< numBins<<std::endl;
+    std::vector<double> bins(numBins);
 
     for(int i=0; i<(numSpheres-1); ++i)
     {
         for(int j=i+1; j<numSpheres; ++j)
         {
             double distanceBetween = CalculateDistance(spherePositions[i], spherePositions[j], lengthBox);
-            int binIndex = floor(distanceBetween);
-            ++bins[binIndex];
+            int binIndex = floor(distanceBetween/binSize);
+            bins[binIndex] += 1.0;
         }
     }
-
-    std::cout<<std::endl;
-    for(int it : bins)
-    {
-        std::cout<<it<<std::endl;
-    }
-    std::cout<<std::endl;
 
     std::vector<double> radial(numBins);
     for(int i=0; i<numBins; ++i)
     {
         radial[i] = (0.5 + i) * binSize;
+        std::cout<<radial[i]<<std::endl;
+    }
+
+    const double numDensity = lastConfig.GetNumDensity();
+    double r;
+    double rPlusdR;
+    double volumeShell;
+    for(int i=0; i<numBins; ++i)
+    {
+        r = radial[i] - 0.5*binSize;
+        rPlusdR = r + binSize;
+        volumeShell = 2.0 * PI * r*r * binSize;
+
+        bins[i] /= numDensity;
+        bins[i] /= numSpheres;
+        bins[i] /= volumeShell;
+    }
+
+    std::cout<<std::endl;
+
+    for(double bin : bins)
+    {
+        std::cout<<bin<<std::endl;
     }
 }
 
 double CalculateDistance(std::vector<double> sphere1, std::vector<double> sphere2, double lengthBox)
 {
-    double diffX = sphere1[0] - sphere2[0];
-    double diffY = sphere1[1] - sphere2[1];
-    double diffZ = sphere1[2] - sphere2[2];
+    double diffX = (sphere1[0] - sphere2[0]);
+    double diffY = (sphere1[1] - sphere2[1]);
+    double diffZ = (sphere1[2] - sphere2[2]);
 
     CorrectForPeriodic(diffX, lengthBox);
     CorrectForPeriodic(diffY, lengthBox);
