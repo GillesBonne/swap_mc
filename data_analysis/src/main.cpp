@@ -1,4 +1,5 @@
 #include <vector>
+#include <cassert>
 
 #include "states.h"
 
@@ -20,7 +21,7 @@ int main()
     int maxSampleIndex = states.GetMaxSampleIndex();
 
     std::vector<std::vector<double>> spherePositions;
-    spherePositions = states.GetSample(1);
+    spherePositions = states.GetSample(maxSampleIndex);
 
     RadialDistributionFunction(spherePositions, lastConfig);
 }
@@ -36,10 +37,8 @@ void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePo
     const double binSize = 0.1 * maxDiameterSphere;
 
     const double lengthBox = lastConfig.GetLengthBox();
-    std::cout<<lengthBox<<std::endl;
 
-    // Max distance from a point with periodic boundary conditions
-    double maxDistance = sqrt(1) * 0.5 * lengthBox;
+    double maxDistance = 0.5 * lengthBox;
     int numBins = ceil(maxDistance/binSize);
 
     std::vector<double> bins(numBins);
@@ -49,8 +48,11 @@ void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePo
         for(int j=i+1; j<numSpheres; ++j)
         {
             double distanceBetween = CalculateDistance(spherePositions[i], spherePositions[j], lengthBox);
-            int binIndex = floor(distanceBetween/binSize);
-            bins[binIndex] += 1.0;
+            int binIndex = round(distanceBetween/binSize);
+            if(binIndex < floor(lengthBox/(2*binSize)))
+            {
+                bins[binIndex] += 1.0;
+            }
         }
     }
 
@@ -58,7 +60,6 @@ void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePo
     for(int i=0; i<numBins; ++i)
     {
         radial[i] = (0.5 + i) * binSize;
-        std::cout<<radial[i]<<std::endl;
     }
 
     const double numDensity = lastConfig.GetNumDensity();
@@ -76,11 +77,23 @@ void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePo
         bins[i] /= volumeShell;
     }
 
-    std::cout<<std::endl;
+    // As the first item is divided by zero.
+    bins.erase(bins.begin());
+    radial.erase(radial.begin());
 
-    for(double bin : bins)
+    for(int i=0; i<numBins-1; ++i)
     {
-        std::cout<<bin<<std::endl;
+        std::cout<<radial[i]<<" "<<bins[i]<<std::endl;
+    }
+
+    std::ofstream outFile("data/radialDistribution.txt", std::ios_base::trunc);
+    outFile << "binSize"<< "\n" << binSize << "\n";
+    for(int i=0; i<numBins-1; ++i)
+    {
+        outFile << radial[i];
+        outFile << ",";
+        outFile << bins[i];
+        outFile << "\n";
     }
 }
 
