@@ -19,7 +19,16 @@ del iterations[0]
 del swap_acceptance[0]
 del translation_acceptance[0]
 
+fig = plt.figure()
 plt.plot(iterations, swap_acceptance)
+plt.xlabel('Iteration')
+plt.ylabel('Accepted swaps')
+fig.savefig("visuals/SwapAcceptance.pdf", bbox_inches='tight')
 plt.show()
+
+fig = plt.figure()
 plt.plot(iterations, translation_acceptance)
+plt.xlabel('Iteration')
+plt.ylabel('Accepted translations')
+fig.savefig("visuals/TranslationAcceptance.pdf", bbox_inches='tight')
 plt.show()

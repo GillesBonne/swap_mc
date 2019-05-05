@@ -74,7 +74,6 @@ void MonteCarlo(Config config)
 
         system.AttemptTranslation();
 
-
         if(i%((int) (numIterations-1)/10 )==0)
         {
             if(i!=0)
