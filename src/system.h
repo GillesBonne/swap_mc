@@ -45,7 +45,7 @@ private:
 
 public:
     // Constructor
-    System(const Config& config);
+    System(const Config& config, const bool usePreviousStates);
 
     int FindLatticeWidth() const;
     void PrintStates() const;

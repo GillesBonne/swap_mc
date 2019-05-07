@@ -1,5 +1,6 @@
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 #include "states.h"
 
@@ -24,7 +25,7 @@ int main()
     int maxSampleIndex = states.GetMaxSampleIndex();
 
     std::vector<std::vector<double>> spherePositions;
-    spherePositions = states.GetSample(maxSampleIndex);
+    spherePositions = states.GetSample(maxSampleIndex, false);
 
     RadialDistributionFunction(spherePositions, lastConfig);
 }
@@ -106,13 +107,17 @@ void RadialDistributionFunction(const std::vector<std::vector<double>>& spherePo
     for(double q : qVector)
     {
         double sum = 0;
-        int incre = 0;
+        int i = 0;
         for(double r : radial)
         {
-            sum += r * (bins[incre]-1) * sin(q * r);
-            incre += 1;
+            sum += r * (bins[i]-1) * sin(q * r);
+            ++i;
         }
         double XkItem = 1 + 4 * PI * numDensity * sum * dr / q;
+        if(XkItem<0)
+        {
+            XkItem = 0;
+        }
         Xk.push_back(XkItem);
     }
 

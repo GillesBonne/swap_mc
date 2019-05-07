@@ -9,7 +9,10 @@
 #include "system.h"
 #include "config.h"
 
-System::System(const Config& config)
+#include "../data_analysis/src/states.h"
+#include "../data_analysis/src/states.cpp"
+
+System::System(const Config& config, const bool usePreviousStates)
     :   numSpheres(config.GetNumSpheres()),
         ratioSizeSphere(config.GetRatioSizeSphere()),
         volumeBox(config.GetVolumeBox()),
@@ -42,56 +45,78 @@ System::System(const Config& config)
     int numPlacedSmallSpheres = 0;
     int numPlacedLargeSpheres = 0;
 
-    int numPlacedSpheres = 0;
     Sphere sphere;
-    int randomRadius;
-    for(int i=0; i<latticeWidth; ++i)
+    if(usePreviousStates)
     {
-        for(int j=0; j<latticeWidth; ++j)
-        {
-            for(int k=0; k<latticeWidth; ++k)
-            {
-                if(numPlacedSpheres<numSpheres)
-                {
-                    sphere.position.x = (i + 0.5)*latticeParameter;
-                    sphere.position.y = (j + 0.5)*latticeParameter;
-                    sphere.position.z = (k + 0.5)*latticeParameter;
+        std::cout<<"Do use previous states"<<std::endl;
+        States states("data/outputStates.txt", numSpheres);
+        int maxSampleIndex = states.GetMaxSampleIndex();
 
-                    // Binary mixture specific
-                    randomRadius = chooseRadius(mersenneTwister);
-                    if(randomRadius==0)
-                    {
-                        if(numPlacedSmallSpheres<numSmallSpheres)
-                        {
-                            sphere.radius = minRadiusSphere;
-                            ++numPlacedSmallSpheres;
-                        }
-                        else
-                        {
-                            sphere.radius = maxRadiusSphere;
-                            ++numPlacedLargeSpheres;
-                        }
-                    }
-                    else if(randomRadius==1)
-                    {
-                        if(numPlacedLargeSpheres<numLargeSpheres)
-                        {
-                            sphere.radius = maxRadiusSphere;
-                            ++numPlacedLargeSpheres;
-                        }
-                        else
-                        {
-                            sphere.radius = minRadiusSphere;
-                            ++numPlacedSmallSpheres;
-                        }
-                    }
-                    spheres.push_back(sphere);
-                }
-                else
+        std::vector<std::vector<double>> spherePositions;
+        spherePositions = states.GetSample(maxSampleIndex, true);
+
+        for(std::vector<double> spherePosition : spherePositions)
+        {
+            sphere.position.x = spherePosition[0];
+            sphere.position.y = spherePosition[1];
+            sphere.position.z = spherePosition[2];
+            sphere.radius = spherePosition[3];
+            spheres.push_back(sphere);
+        }
+    }
+    else
+    {
+        std::cout<<"Do not use previous states"<<std::endl;
+        int numPlacedSpheres = 0;
+        int randomRadius;
+        for(int i=0; i<latticeWidth; ++i)
+        {
+            for(int j=0; j<latticeWidth; ++j)
+            {
+                for(int k=0; k<latticeWidth; ++k)
                 {
-                    break;
+                    if(numPlacedSpheres<numSpheres)
+                    {
+                        sphere.position.x = (i + 0.5)*latticeParameter;
+                        sphere.position.y = (j + 0.5)*latticeParameter;
+                        sphere.position.z = (k + 0.5)*latticeParameter;
+
+                        // Binary mixture specific
+                        randomRadius = chooseRadius(mersenneTwister);
+                        if(randomRadius==0)
+                        {
+                            if(numPlacedSmallSpheres<numSmallSpheres)
+                            {
+                                sphere.radius = minRadiusSphere;
+                                ++numPlacedSmallSpheres;
+                            }
+                            else
+                            {
+                                sphere.radius = maxRadiusSphere;
+                                ++numPlacedLargeSpheres;
+                            }
+                        }
+                        else if(randomRadius==1)
+                        {
+                            if(numPlacedLargeSpheres<numLargeSpheres)
+                            {
+                                sphere.radius = maxRadiusSphere;
+                                ++numPlacedLargeSpheres;
+                            }
+                            else
+                            {
+                                sphere.radius = minRadiusSphere;
+                                ++numPlacedSmallSpheres;
+                            }
+                        }
+                        spheres.push_back(sphere);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    ++numPlacedSpheres;
                 }
-                ++numPlacedSpheres;
             }
         }
     }

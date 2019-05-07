@@ -2,21 +2,21 @@
 #include <sstream>
 #include <cassert>
 
+#include <iostream>
+
 #include "states.h"
-
-
 
 States::States(const std::string _statesFile, const int _numSpheres)
     : statesFile(_statesFile), numSpheres(_numSpheres)
 {
 }
 
-std::vector<std::vector<double>>  States::GetSample(int sampleIndex)
+std::vector<std::vector<double>>  States::GetSample(int sampleIndex, bool withRadius)
 {
     assert(sampleIndex != 0);
     std::vector<std::vector<double>> spherePositions;
     spherePositions.reserve(numSpheres);
-    std::vector<double> spherePosition(3);
+
 
     int sampleIndexCounter = 0;
 
@@ -39,21 +39,46 @@ std::vector<std::vector<double>>  States::GetSample(int sampleIndex)
             }
             else
             {
-                if(sampleIndexCounter==sampleIndex)
+                // add spherePosition here
+                if(withRadius)
                 {
-                    std::stringstream linestream(line);
-                    std::string value;
-                    int item = 0;
-                    while(getline(linestream,value,','))
+                    std::vector<double> spherePosition(4);
+                    if(sampleIndexCounter==sampleIndex)
                     {
-                        // First 3 elements are x, y, z respectively
-                        if(item<3)
+                        std::stringstream linestream(line);
+                        std::string value;
+                        int item = 0;
+                        while(getline(linestream,value,','))
                         {
-                            spherePosition[item] = std::stod(value);
+                            // First 3 elements are x, y, z respectively
+                            if(item<4)
+                            {
+                                spherePosition[item] = std::stod(value);
+                            }
+                            ++item;
                         }
-                        ++item;
+                    spherePositions.push_back(spherePosition);
+                    }
                 }
-                spherePositions.push_back(spherePosition);
+                else
+                {
+                    std::vector<double> spherePosition(3);
+                    if(sampleIndexCounter==sampleIndex)
+                    {
+                        std::stringstream linestream(line);
+                        std::string value;
+                        int item = 0;
+                        while(getline(linestream,value,','))
+                        {
+                            // First 3 elements are x, y, z respectively
+                            if(item<3)
+                            {
+                                spherePosition[item] = std::stod(value);
+                            }
+                            ++item;
+                        }
+                    spherePositions.push_back(spherePosition);
+                    }
                 }
             }
 

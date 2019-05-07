@@ -13,25 +13,38 @@
 
 #include "export2D.h"
 
-void MonteCarlo(Config config);
+void MonteCarlo(Config config, bool usePreviousStates);
 void PrintAcceptanceInfo(const System& system, int numIterations);
 void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
 
-int main()
+int main(int argc, char* argv[])
 {
     Timer timer;
+
+    bool usePreviousStates;
+    if(argc>1)
+    {
+        if(argv[1]==std::string("y"))
+        {
+            usePreviousStates = true;
+        }
+        else
+        {
+            usePreviousStates = false;
+        }
+    }
 
     std::string configFile = "config.txt";
     Config config(configFile);
 
     CopyFile(configFile, "data/lastConfig.txt");
 
-    MonteCarlo(config);
+    MonteCarlo(config, usePreviousStates);
 }
 
-void MonteCarlo(Config config)
+void MonteCarlo(Config config, bool usePreviousStates)
 {
-    System system(config);
+    System system(config, usePreviousStates);
 
     int numIterations = config.GetNumIterations();
 
@@ -48,10 +61,12 @@ void MonteCarlo(Config config)
     std::vector<double> swapAcceptance;
     std::vector<double> translationAcceptance;
 
+    const int skipSample = 10000;
+
     int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
-        if(i%10000==0)
+        if(i%skipSample==0)
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, i);
@@ -61,10 +76,14 @@ void MonteCarlo(Config config)
 
             pressure.push_back(system.GetPressure());
 
-            swapAcceptance.push_back(system.GetAcceptedSwaps()-prevAcceptedSwaps);
-            translationAcceptance.push_back(system.GetAcceptedTranslations()-prevAcceptedTranslations);
-            prevAcceptedSwaps = system.GetAcceptedSwaps();
-            prevAcceptedTranslations = system.GetAcceptedTranslations();
+            int numAcceptedSwaps = system.GetAcceptedSwaps();
+            int numAcceptedTranslations = system.GetAcceptedTranslations();
+            double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSample;
+            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)/skipSample;
+            swapAcceptance.push_back(swapRatio);
+            translationAcceptance.push_back(translationRatio);
+            prevAcceptedSwaps = numAcceptedSwaps;
+            prevAcceptedTranslations = numAcceptedTranslations;
         }
 
         if(config.GetSwapProbability() > 0)
@@ -100,11 +119,7 @@ void PrintAcceptanceInfo(const System& system, int numIterations)
     std::cout<<"Accepted/attempted translations: "<<acceptanceFracTranslations<<std::endl;
 
     int acceptedSwaps = system.GetAcceptedSwaps();
-    int rejectedSwaps = system.GetRejectedSwaps();
-    int attemptedSwaps = acceptedSwaps + rejectedSwaps;
-    double acceptanceFracSwaps = (double) acceptedSwaps/attemptedSwaps;
     double totalAcceptanceFracSwaps = (double) acceptedSwaps/numIterations;
-    std::cout<<"Accepted/attempted swaps: "<<acceptanceFracSwaps<<std::endl;
     std::cout<<"Accepted/numIterations: "<<totalAcceptanceFracSwaps<<std::endl;
 }
 
