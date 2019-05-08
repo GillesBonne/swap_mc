@@ -61,12 +61,12 @@ void MonteCarlo(Config config, bool usePreviousStates)
     std::vector<double> swapAcceptance;
     std::vector<double> translationAcceptance;
 
-    const int skipSample = 10000;
+    const int skipSamples = config.GetSkipSamples();
 
     int progress = 0;
     for(int i=0; i<numIterations; ++i)
     {
-        if(i%skipSample==0)
+        if(i%skipSamples==0)
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, i);
@@ -78,8 +78,8 @@ void MonteCarlo(Config config, bool usePreviousStates)
 
             int numAcceptedSwaps = system.GetAcceptedSwaps();
             int numAcceptedTranslations = system.GetAcceptedTranslations();
-            double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSample;
-            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)/skipSample;
+            double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSamples;
+            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)/skipSamples;
             swapAcceptance.push_back(swapRatio);
             translationAcceptance.push_back(translationRatio);
             prevAcceptedSwaps = numAcceptedSwaps;

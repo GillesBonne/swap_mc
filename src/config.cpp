@@ -21,6 +21,7 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     std::string swapProbabilityString;
 
     std::string numIterationsString;
+    std::string skipSamplesString;
 
     // Read contents of config file and assigns it to the corresponding member variables.
     if (inFile.is_open())
@@ -63,6 +64,10 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
             {
                 numIterationsString = value;
             }
+            else if(name=="skipSamples")
+            {
+                skipSamplesString = value;
+            }
         }
     }
     numSpheres = std::stoi(numSpheresString);
@@ -79,6 +84,7 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     latticeParameter = lengthBox / latticeWidth;
 
     numIterations = std::stoi(numIterationsString);
+    skipSamples = std::stoi(skipSamplesString);
 }
 
 int Config::FindLatticeWidth() const
@@ -135,4 +141,8 @@ int Config::GetNumIterations() const
 double Config::GetNumDensity() const
 {
     return numDensity;
+}
+int Config::GetSkipSamples() const
+{
+    return skipSamples;
 }

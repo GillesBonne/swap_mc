@@ -3,6 +3,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
+import config
+
 def read_acceptance():
     with open("data/translationAcceptance.txt","r") as file:
         translation_acceptance = []
@@ -12,6 +14,7 @@ def read_acceptance():
             del translation_acceptance[0]
         translation_acceptance = np.array(translation_acceptance)
         return np.mean(translation_acceptance)
+
 
 def change_temperature_to(T):
     with open("config.txt","r") as config_file:
@@ -25,7 +28,16 @@ def change_temperature_to(T):
                     new_config_file.write(line_individual)
             os.rename("new_config.txt","config.txt")
 
-num_temperatures = 10
+config.change_config_to(num_iterations=100001,
+                    skip_samples=1000,
+                    num_spheres=1000,
+                    ratio_size_sphere=1.2,
+                    num_density=1.0,
+                    temperature_fixed = 0.25,
+                    max_translation_distance_in_max_particle_size=0.15,
+                    swap_probability=0.1)
+
+num_temperatures = 5
 num_averages = 2
 translation_acceptances = np.zeros(num_temperatures)
 temperatures = np.linspace(0.05,0.95,num_temperatures)

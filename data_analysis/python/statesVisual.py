@@ -11,10 +11,12 @@ with open("../../data/lastConfig.txt","r") as config_file:
             num_spheres = int(line_split[1])
         if line_split[0] == "numDensity":
             num_density = float(line_split[1])
-
+        if line_split[0] == "skipSamples":
+            skip_samples = float(line_split[1])
+            
 num_sample_steps = 0
 for i in range(num_iterations):
-    if(i%10000==0):
+    if(i%skip_samples==0):
         num_sample_steps += 1
 
 iterations = np.zeros(num_sample_steps)

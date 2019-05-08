@@ -25,6 +25,7 @@ private:
     double swapProbability;
 
     int numIterations;
+    int skipSamples;
 public:
     // Constructor
     Config(const std::string _configFile);
@@ -49,6 +50,8 @@ public:
     int GetNumIterations() const;
 
     double GetNumDensity() const;
+
+    int GetSkipSamples() const;
 };
 
 #endif
