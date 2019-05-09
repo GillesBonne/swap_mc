@@ -35,7 +35,6 @@ private:
 
     int acceptedTranslations = 0;
     int acceptedSwaps = 0;
-    int rejectedSwaps = 0;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;
@@ -72,7 +71,6 @@ public:
     // Accessor functions
     int GetAcceptedTranslations() const;
     int GetAcceptedSwaps() const;
-    int GetRejectedSwaps() const;
 
     double GetTotalEnergy();
 

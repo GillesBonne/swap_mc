@@ -1,3 +1,6 @@
+#ifndef TIMER_H
+#define TIMER_H
+
 #include <chrono>
 
 struct Timer
@@ -9,3 +12,5 @@ struct Timer
 
     ~Timer();
 };
+
+#endif

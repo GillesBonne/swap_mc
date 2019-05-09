@@ -1,8 +1,8 @@
-numIterations = 200001
+numIterations = 10001
 skipSamples = 1000
 numSpheres = 1000
 ratioSizeSphere = 1.2
 numDensity = 1.0
-temperatureFixed = 0.25
+temperatureFixed = 0.1
 maxTranslationDistanceInMaxParticleSize = 0.15
 swapProbability = 0.1

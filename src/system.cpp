@@ -1,4 +1,5 @@
 // Place #define NDEBUG if asserts should not be evaluated.
+#define NDEBUG
 
 #include <iostream>
 #include <cmath>
@@ -42,8 +43,6 @@ System::System(const Config& config, const bool usePreviousStates)
     const int numLargeSpheres = numSpheres - numSmallSpheres;
     assert(numSpheres == numSmallSpheres+numLargeSpheres);
     std::uniform_int_distribution<int> chooseRadius(0,1);
-    int numPlacedSmallSpheres = 0;
-    int numPlacedLargeSpheres = 0;
 
     Sphere sphere;
     if(usePreviousStates)
@@ -67,6 +66,8 @@ System::System(const Config& config, const bool usePreviousStates)
     else
     {
         std::cout<<"Do not use previous states"<<std::endl;
+        int numPlacedSmallSpheres = 0;
+        int numPlacedLargeSpheres = 0;
         int numPlacedSpheres = 0;
         int randomRadius;
         for(int i=0; i<latticeWidth; ++i)
@@ -200,10 +201,6 @@ void System::AttemptSwap()
 
             ++acceptedSwaps;
         }
-        else
-        {
-            ++rejectedSwaps;
-        }
     }
 }
 
@@ -265,20 +262,15 @@ void System::CorrectForPeriodicDistance(double& length) const
 {
     bool negativeOutsideBoundary = (length < -0.5*lengthBox);
     bool positiveOutsideBoundary = (length > 0.5*lengthBox);
-    do
+    if(positiveOutsideBoundary)
     {
-        if(positiveOutsideBoundary)
-        {
-            length -= lengthBox;
-        }
-        else if(negativeOutsideBoundary)
-        {
-            length += lengthBox;
-        }
-    negativeOutsideBoundary = (length < -0.5*lengthBox);
-    positiveOutsideBoundary = (length > 0.5*lengthBox);
+        length -= lengthBox;
     }
-    while(negativeOutsideBoundary || positiveOutsideBoundary);
+    else if(negativeOutsideBoundary)
+    {
+        length += lengthBox;
+    }
+    assert(!(length < -0.5*lengthBox || length > 0.5*lengthBox));
 }
 
 void System::CorrectForPeriodicSphere(Sphere& sphere)
@@ -290,22 +282,14 @@ void System::CorrectForPeriodicSphere(Sphere& sphere)
 
 void System::CorrectForPeriodicCoordinate(double& coordinate) const
 {
-    bool negativeOutsideBoundary = (coordinate < 0);
-    bool positiveOutsideBoundary = (coordinate >= lengthBox);
-    do
+    while(coordinate < 0.0)
     {
-        if(positiveOutsideBoundary)
-        {
-            coordinate -= lengthBox;
-        }
-        else if(negativeOutsideBoundary)
-        {
-            coordinate += lengthBox;
-        }
-        negativeOutsideBoundary = (coordinate < 0);
-        positiveOutsideBoundary = (coordinate >= lengthBox);
+        coordinate += lengthBox;
     }
-    while(negativeOutsideBoundary || positiveOutsideBoundary);
+    while(coordinate >= lengthBox)
+    {
+        coordinate -= lengthBox;
+    }
 }
 
 bool System::IsChosenWithProbability(const double probabilityReference)
@@ -332,17 +316,17 @@ int System::GetAcceptedSwaps() const
 {
     return acceptedSwaps;
 }
-int System::GetRejectedSwaps() const
-{
-    return rejectedSwaps;
-}
 
 double System::GetTotalEnergy()
 {
     double energy = 0;
-    for(int i=0; i<numSpheres; ++i)
+    for(int i=0; i < (numSpheres-1); ++i)
     {
-        energy += 0.5 * CalculateEnergy(i, spheres[i]);
+        for(int j=i+1; j < numSpheres; ++j)
+        {
+            energy += PotentialWCA(RadiusSumOf(spheres[i],spheres[j]),
+                    DistanceBetween(spheres[i],spheres[j]));
+        }
     }
     return energy;
 }

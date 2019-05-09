@@ -1,4 +1,5 @@
 // Place #define NDEBUG if asserts should not be evaluated.
+#define NDEBUG
 
 #include <iostream>
 #include <cassert>
@@ -6,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <array>
+#include <stdexcept>
 
 #include "system.h"
 #include "config.h"
@@ -21,25 +23,28 @@ int main(int argc, char* argv[])
 {
     Timer timer;
 
-    bool usePreviousStates;
+    bool usePreviousStates = false;
     if(argc>1)
     {
         if(argv[1]==std::string("y"))
         {
             usePreviousStates = true;
         }
-        else
-        {
-            usePreviousStates = false;
-        }
     }
 
-    std::string configFile = "config.txt";
-    Config config(configFile);
+    try
+    {
+        std::string configFile = "config.txt";
+        Config config(configFile);
 
-    CopyFile(configFile, "data/lastConfig.txt");
+        CopyFile(configFile, "data/lastConfig.txt");
 
-    MonteCarlo(config, usePreviousStates);
+        MonteCarlo(config, usePreviousStates);
+    }
+    catch(std::out_of_range& e)
+    {
+        std::cout<<e.what()<<std::endl;
+    }
 }
 
 void MonteCarlo(Config config, bool usePreviousStates)
@@ -52,18 +57,28 @@ void MonteCarlo(Config config, bool usePreviousStates)
     ClearContents(outputStatesFile);
     std::vector<std::vector<double>> exportedStates;
 
-    std::vector<int> iterations;
-    std::vector<double> totalEnergy;
-    std::vector<double> pressure;
+    std::string outputIterationsFile = "data/iterations.txt";
+    std::string outputEnergyFile = "data/energy.txt";
+    std::string outputPressureFile = "data/pressure.txt";
+    std::string outputSwapFile = "data/swapAcceptance.txt";
+    std::string outputTranslationFile = "data/translationAcceptance.txt";
+    ClearContents(outputIterationsFile);
+    ClearContents(outputEnergyFile);
+    ClearContents(outputPressureFile);
+    ClearContents(outputSwapFile);
+    ClearContents(outputTranslationFile);
 
     int prevAcceptedSwaps = 0;
     int prevAcceptedTranslations = 0;
-    std::vector<double> swapAcceptance;
-    std::vector<double> translationAcceptance;
 
     const int skipSamples = config.GetSkipSamples();
 
+    // Record start time.
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point currentTime = start;
+
     int progress = 0;
+    int whichPrint = 0;
     for(int i=0; i<numIterations; ++i)
     {
         if(i%skipSamples==0)
@@ -71,43 +86,47 @@ void MonteCarlo(Config config, bool usePreviousStates)
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, i);
 
-            iterations.push_back(i);
-            totalEnergy.push_back(system.GetTotalEnergy());
+            ExportItem(i, outputIterationsFile);
+            ExportItem(system.GetTotalEnergy(), outputEnergyFile);
+            ExportItem(system.GetPressure(), outputPressureFile);
 
-            pressure.push_back(system.GetPressure());
-
+            // Export MC acceptance ratios.
             int numAcceptedSwaps = system.GetAcceptedSwaps();
             int numAcceptedTranslations = system.GetAcceptedTranslations();
             double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSamples;
             double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)/skipSamples;
-            swapAcceptance.push_back(swapRatio);
-            translationAcceptance.push_back(translationRatio);
+
+            ExportItem(swapRatio, outputSwapFile);
+            ExportItem(translationRatio, outputTranslationFile);
+
             prevAcceptedSwaps = numAcceptedSwaps;
             prevAcceptedTranslations = numAcceptedTranslations;
         }
 
-        if(config.GetSwapProbability() > 0)
-        {
-            system.AttemptSwap();
-        }
+        system.AttemptSwap();
 
         system.AttemptTranslation();
 
-        if(i%((int) (numIterations-1)/10 )==0)
+        // Printing progress and ETA.
+        int numProgressUpdates = 10;
+        if(i%((int) (numIterations-1)/numProgressUpdates)==0)
         {
             if(i!=0)
             {
+                whichPrint++;
+                currentTime = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> timeSinceStart = currentTime - start;
+                auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*(numProgressUpdates-whichPrint);
+
                 progress = 100*i/(numIterations-1);
-                std::cout<<progress<<"%"<<std::endl;
+                std::cout<<progress<<"%"<<"\t ETA: "<<estimatedTimeOfCompletion.count()<<" s"<<std::endl;
             }
         }
     }
-
-    Export1D(iterations, "data/iterations.txt");
-    Export1D(totalEnergy, "data/energy.txt");
-    Export1D(pressure, "data/pressure.txt");
-    Export1D(swapAcceptance, "data/swapAcceptance.txt");
-    Export1D(translationAcceptance, "data/translationAcceptance.txt");
+    // Record end time.
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    std::cout << "MC iterations took: " << elapsed.count() << " s" << std::endl;
 
     PrintAcceptanceInfo(system, numIterations);
 }
@@ -126,8 +145,7 @@ void PrintAcceptanceInfo(const System& system, int numIterations)
 void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
 {
     std::ifstream inFile(sourceFile);
-    std::ofstream outFileClear(destinationFile, std::ios_base::trunc);
-    std::ofstream outFile(destinationFile, std::ios_base::app);
+    std::ofstream outFile(destinationFile, std::ios_base::trunc);
     if(inFile.is_open())
     {
         std::string line;
@@ -137,5 +155,4 @@ void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
             outFile << "\n";
         }
     }
-
 }

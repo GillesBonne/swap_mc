@@ -71,6 +71,24 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
         }
     }
     numSpheres = std::stoi(numSpheresString);
+    if(numSpheres < 8)
+    {
+        throw std::out_of_range("Not enough spheres.");
+    }
+
+    bool isPowerOfThree = false;
+    for(int i=2; i<=numSpheres; ++i)
+    {
+        if(i*i*i == numSpheres)
+        {
+            isPowerOfThree = true;
+        }
+    }
+    if(!isPowerOfThree)
+    {
+        throw std::out_of_range("Number of spheres is not a power of 3.");
+    }
+
     ratioSizeSphere = std::stod(ratioSizeSphereString);
     numDensity = std::stod(numDensityString);
     temperatureFixed = std::stod(temperatureFixedString);

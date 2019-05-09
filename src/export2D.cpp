@@ -33,23 +33,15 @@ void Export2D(const std::vector<std::vector<double>> &vector2D,
     }
 }
 
-void Export1D(const std::vector<int> vector1D,
-        const std::string filePath)
+void ExportItem(const int item, std::string& filePath)
 {
-    std::ofstream outFile(filePath, std::ios_base::trunc);
-    for(int item : vector1D)
-    {
-        outFile << item;
-        outFile << "\n";
-    }
+    std::ofstream outFile(filePath, std::ios_base::app);
+    outFile << item;
+    outFile << "\n";
 }
-void Export1D(const std::vector<double> vector1D,
-        const std::string filePath)
+void ExportItem(const double item, std::string& filePath)
 {
-    std::ofstream outFile(filePath, std::ios_base::trunc);
-    for(double item : vector1D)
-    {
-        outFile << item;
-        outFile << "\n";
-    }
+    std::ofstream outFile(filePath, std::ios_base::app);
+    outFile << item;
+    outFile << "\n";
 }

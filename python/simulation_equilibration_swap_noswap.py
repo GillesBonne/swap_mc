@@ -27,23 +27,39 @@ def change_swap_probability_to(p_swap):
                     new_config_file.write(line_individual)
             os.rename("new_config.txt","config.txt")
 
-config.change_config_to(num_iterations=200001,
-                    skip_samples=1000,
-                    num_spheres=1000,
-                    ratio_size_sphere=1.2,
-                    num_density=1.0,
-                    temperature_fixed = 0.25,
-                    max_translation_distance_in_max_particle_size=0.15,
-                    swap_probability=0.1)
+num_iterations                                  = 500001
+skip_samples                                    = 1000
+num_spheres                                     = 1000
+ratio_size_sphere                               = 1.2
+num_density                                     = 1.0
+temperature_fixed                               = 0.15
+max_translation_distance_in_max_particle_size   = 0.15
+swap_probability                                = 0.1
 
-num_swap_probabilities = 10
+config.change_config_to(num_iterations,
+                    skip_samples,
+                    num_spheres,
+                    ratio_size_sphere,
+                    num_density,
+                    temperature_fixed,
+                    max_translation_distance_in_max_particle_size,
+                    swap_probability)
+
 num_averages = 3
 
 subprocess.call(["bin/runner"])
 iterations = read_file(path = "data/iterations.txt", is_integer=True)
 num_samples = len(iterations)
 
-swap_probabilities = np.linspace(0,1,num_swap_probabilities)
+with open("data/lastConfig.txt","r") as config_file:
+    for line_individual in config_file:
+        line = line_individual.replace(" ", "")
+        line_split = line.split("=")
+        if line_split[0] == "numSpheres":
+            num_spheres = int(line_split[1])
+
+swap_probabilities = np.array([0.0, 0.1, 0.2])
+num_swap_probabilities = swap_probabilities.size
 
 energy = np.zeros((num_samples,num_swap_probabilities))
 pressure = np.zeros((num_samples,num_swap_probabilities))
@@ -65,22 +81,30 @@ for i,p in enumerate(swap_probabilities):
 energy /= num_averages
 pressure /= num_averages
 
+time = np.zeros(len(iterations))
+for i,iteration in enumerate(iterations):
+    time[i] = iteration/num_spheres
+
 fig = plt.figure()
 for i, p_swap in enumerate(swap_probabilities):
-    plt.plot(iterations, energy[:,i], label=("Swap probability: "+str(p_swap)))
+    plt.semilogx(time, energy[:,i], label=("Swap probability: "+str(p_swap)))
 
 plt.legend(loc="best")
-plt.xlabel("Iterations")
+plt.xlabel("Time")
 plt.ylabel("Energy")
+plt.tick_params(which="both", direction="in")
+plt.ylim(bottom=0)
 fig.savefig("python/visuals/swap_energy_equilibration.pdf", bbox_inches='tight')
 plt.show()
 
 fig = plt.figure()
 for i, p_swap in enumerate(swap_probabilities):
-    plt.plot(iterations, pressure[:,i], label=("Swap probability: "+str(p_swap)))
+    plt.semilogx(time, pressure[:,i], label=("Swap probability: "+str(p_swap)))
 
 plt.legend(loc="best")
-plt.xlabel("Iterations")
+plt.xlabel("Time")
 plt.ylabel("Pressure")
+plt.tick_params(which="both", direction="in")
+plt.ylim(bottom=0)
 fig.savefig("python/visuals/swap_pressure_equilibration.pdf", bbox_inches='tight')
 plt.show()
