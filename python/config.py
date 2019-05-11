@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 
 def change_config_to(num_iterations,

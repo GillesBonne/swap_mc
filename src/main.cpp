@@ -2,12 +2,15 @@
 #define NDEBUG
 
 #include <iostream>
+#include <iomanip>
 #include <cassert>
 #include <string>
 #include <fstream>
 #include <vector>
 #include <array>
 #include <stdexcept>
+#include <chrono>
+#include <ctime>
 
 #include "system.h"
 #include "config.h"
@@ -18,6 +21,7 @@
 void MonteCarlo(Config config, bool usePreviousStates);
 void PrintAcceptanceInfo(const System& system, int numIterations);
 void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
+std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current, double offset);
 
 int main(int argc, char* argv[])
 {
@@ -75,9 +79,8 @@ void MonteCarlo(Config config, bool usePreviousStates)
 
     // Record start time.
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point currentTime = start;
+    std::cout<<"Simulation started at "<<GetCurrentTime(start, 0)<<std::endl<<std::endl;
 
-    int progress = 0;
     int whichPrint = 0;
     for(int i=0; i<numIterations; ++i)
     {
@@ -114,32 +117,41 @@ void MonteCarlo(Config config, bool usePreviousStates)
             if(i!=0)
             {
                 whichPrint++;
-                currentTime = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> timeSinceStart = currentTime - start;
-                auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*(numProgressUpdates-whichPrint);
+                auto current = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> timeSinceStart = current - start;
+                int numProgressUpdatesToDo = numProgressUpdates - whichPrint;
+                auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*numProgressUpdatesToDo;
 
-                progress = 100*i/(numIterations-1);
-                std::cout<<progress<<"%"<<"\t ETA: "<<estimatedTimeOfCompletion.count()<<" s"<<std::endl;
+                int progress = 100*i/(numIterations-1);
+
+                auto dateTime = GetCurrentTime(current, 0);
+
+                double secondsLeft = estimatedTimeOfCompletion.count();
+
+                if(secondsLeft > 3600 * numProgressUpdatesToDo)
+                {
+                    std::cout<<std::setw(3)<<progress<<"%"
+                        <<"\t ETA: "<< std::setw(12)<<secondsLeft/3600<<" hours"
+                        <<"\t at UTC "<<dateTime<<std::endl;
+                }
+                else if(secondsLeft > 60 * numProgressUpdatesToDo)
+                {
+                    std::cout<<std::setw(3)<<progress<<"%"
+                        <<"\t ETA: "<< std::setw(12)<<secondsLeft/60<<" min"
+                        <<"\t at UTC "<<dateTime<<std::endl;
+                }
+                else
+                {
+                    std::cout<<std::setw(3)<<progress<<"%"
+                        <<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
+                        <<" at UTC "<<dateTime<<std::endl;
+                }
+
+                std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)
+                    <<std::endl<<std::endl;
             }
         }
     }
-    // Record end time.
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = finish - start;
-    std::cout << "MC iterations took: " << elapsed.count() << " s" << std::endl;
-
-    PrintAcceptanceInfo(system, numIterations);
-}
-
-void PrintAcceptanceInfo(const System& system, int numIterations)
-{
-    int acceptedTranslations = system.GetAcceptedTranslations();
-    double acceptanceFracTranslations = (double) acceptedTranslations/numIterations;
-    std::cout<<"Accepted/attempted translations: "<<acceptanceFracTranslations<<std::endl;
-
-    int acceptedSwaps = system.GetAcceptedSwaps();
-    double totalAcceptanceFracSwaps = (double) acceptedSwaps/numIterations;
-    std::cout<<"Accepted/numIterations: "<<totalAcceptanceFracSwaps<<std::endl;
 }
 
 void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
@@ -155,4 +167,13 @@ void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
             outFile << "\n";
         }
     }
+}
+
+std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current, double offset)
+{
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(current) + offset;
+    auto dateTimeInfo = std::ctime(&currentTime);
+    std::string dateTimeInfoString(dateTimeInfo);
+    auto dateTime = dateTimeInfoString.substr(4,15);
+    return dateTime;
 }

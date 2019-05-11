@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from vpython import *
 import numpy as np
 

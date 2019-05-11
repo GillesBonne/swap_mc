@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import subprocess
 import numpy as np
 import os

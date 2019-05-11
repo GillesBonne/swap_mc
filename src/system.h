@@ -24,6 +24,7 @@ private:
     const double swapProbability;
     const double maxTranslationDistanceInMaxParticleSize;
     double maxRadiusSphere;
+    double minRadiusSphere;
     double maxTranslationDistance;
 
     const double numDensity;
@@ -58,6 +59,7 @@ public:
     double CalculateEnergy(const int index, const Sphere& sphere);
 
     double PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
+    double PotentialLennardJones(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
 
     double RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const;
     double DistanceBetween(const Sphere& sphere1, const Sphere& sphere2);

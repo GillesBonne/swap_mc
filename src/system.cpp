@@ -7,6 +7,8 @@
 #include <cassert>
 #include <algorithm>
 
+#include "timer.h"
+
 #include "system.h"
 #include "config.h"
 
@@ -15,6 +17,7 @@
 
 System::System(const Config& config, const bool usePreviousStates)
     :   numSpheres(config.GetNumSpheres()),
+        spheres(numSpheres),
         ratioSizeSphere(config.GetRatioSizeSphere()),
         volumeBox(config.GetVolumeBox()),
         lengthBox(config.GetLengthBox()),
@@ -29,47 +32,39 @@ System::System(const Config& config, const bool usePreviousStates)
         randomPosNegDouble(-1,1),
         randomParticle(0,numSpheres-1)
 {
+    Timer timer;
     assert(numSpheres > 1);
     assert(std::pow(latticeWidth,3) >= numSpheres);
 
     maxRadiusSphere = latticeParameter/2;
-    double minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
+    minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
 
     // Max tranlationdistances should be such that translation acceptance is between 30-40%
     maxTranslationDistance = maxRadiusSphere*maxTranslationDistanceInMaxParticleSize;
 
-    // Binary mixture specific 50:50 ratio
-    const int numSmallSpheres = numSpheres/2;
-    const int numLargeSpheres = numSpheres - numSmallSpheres;
-    assert(numSpheres == numSmallSpheres+numLargeSpheres);
-    std::uniform_int_distribution<int> chooseRadius(0,1);
-
     Sphere sphere;
     if(usePreviousStates)
     {
-        std::cout<<"Do use previous states"<<std::endl;
+        std::cout<<"Use previous states"<<std::endl;
         States states("data/outputStates.txt", numSpheres);
         int maxSampleIndex = states.GetMaxSampleIndex();
 
-        std::vector<std::vector<double>> spherePositions;
+        std::vector<std::vector<double>> spherePositions(numSpheres);
         spherePositions = states.GetSample(maxSampleIndex, true);
 
-        for(std::vector<double> spherePosition : spherePositions)
+        for(int i=0; i<numSpheres; ++i)
         {
-            sphere.position.x = spherePosition[0];
-            sphere.position.y = spherePosition[1];
-            sphere.position.z = spherePosition[2];
-            sphere.radius = spherePosition[3];
-            spheres.push_back(sphere);
+            sphere.position.x = spherePositions[i][0];
+            sphere.position.y = spherePositions[i][1];
+            sphere.position.z = spherePositions[i][2];
+            sphere.radius = spherePositions[i][3];
+            spheres[i] = sphere;
         }
     }
     else
     {
         std::cout<<"Do not use previous states"<<std::endl;
-        int numPlacedSmallSpheres = 0;
-        int numPlacedLargeSpheres = 0;
         int numPlacedSpheres = 0;
-        int randomRadius;
         for(int i=0; i<latticeWidth; ++i)
         {
             for(int j=0; j<latticeWidth; ++j)
@@ -82,35 +77,7 @@ System::System(const Config& config, const bool usePreviousStates)
                         sphere.position.y = (j + 0.5)*latticeParameter;
                         sphere.position.z = (k + 0.5)*latticeParameter;
 
-                        // Binary mixture specific
-                        randomRadius = chooseRadius(mersenneTwister);
-                        if(randomRadius==0)
-                        {
-                            if(numPlacedSmallSpheres<numSmallSpheres)
-                            {
-                                sphere.radius = minRadiusSphere;
-                                ++numPlacedSmallSpheres;
-                            }
-                            else
-                            {
-                                sphere.radius = maxRadiusSphere;
-                                ++numPlacedLargeSpheres;
-                            }
-                        }
-                        else if(randomRadius==1)
-                        {
-                            if(numPlacedLargeSpheres<numLargeSpheres)
-                            {
-                                sphere.radius = maxRadiusSphere;
-                                ++numPlacedLargeSpheres;
-                            }
-                            else
-                            {
-                                sphere.radius = minRadiusSphere;
-                                ++numPlacedSmallSpheres;
-                            }
-                        }
-                        spheres.push_back(sphere);
+                        spheres[numPlacedSpheres] = sphere;
                     }
                     else
                     {
@@ -121,21 +88,116 @@ System::System(const Config& config, const bool usePreviousStates)
             }
         }
     }
+
+    // Toggle
+    bool continuousPolydisperse = false;
+    if(continuousPolydisperse)
+    {
+        std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
+        for(int i=0; i<numSpheres; ++i)
+        {
+            spheres[i].radius = randomDoubleMinMaxSize(mersenneTwister);
+        }
+    }
+    else
+    {
+        // Toggle: if radius ratio is not equal then ratio large:small = 80:20
+        bool radiusRatioEqual = true;
+        if(radiusRatioEqual)
+        {
+            const int numSmallSpheres = 0.5 * numSpheres;
+            const int numLargeSpheres = numSpheres - numSmallSpheres;
+
+            int numPlacedSmallSpheres = 0;
+            int numPlacedLargeSpheres = 0;
+            int randomRadius;
+
+            for(int i=0; i<numSpheres; ++i)
+            {
+                double randomRadius = randomDouble(mersenneTwister);
+                if(randomRadius <= 0.5)
+                {
+                    if(numPlacedSmallSpheres<numSmallSpheres)
+                    {
+                        spheres[i].radius = minRadiusSphere;
+                        ++numPlacedSmallSpheres;
+                    }
+                    else
+                    {
+                        spheres[i].radius = maxRadiusSphere;
+                        ++numPlacedLargeSpheres;
+                    }
+                }
+                else
+                {
+                    if(numPlacedLargeSpheres<numLargeSpheres)
+                    {
+                        spheres[i].radius = maxRadiusSphere;
+                        ++numPlacedLargeSpheres;
+                    }
+                    else
+                    {
+                        spheres[i].radius = minRadiusSphere;
+                        ++numPlacedSmallSpheres;
+                    }
+                }
+            }
+        }
+        else
+        {
+            const int numSmallSpheres = 0.2 * numSpheres;
+            const int numLargeSpheres = numSpheres - numSmallSpheres;
+
+            int numPlacedSmallSpheres = 0;
+            int numPlacedLargeSpheres = 0;
+            int randomRadius;
+
+            for(int i=0; i<numSpheres; ++i)
+            {
+                double randomRadius = randomDouble(mersenneTwister);
+                if(randomRadius <= 0.2)
+                {
+                    if(numPlacedSmallSpheres<numSmallSpheres)
+                    {
+                        spheres[i].radius = minRadiusSphere;
+                        ++numPlacedSmallSpheres;
+                    }
+                    else
+                    {
+                        spheres[i].radius = maxRadiusSphere;
+                        ++numPlacedLargeSpheres;
+                    }
+                }
+                else
+                {
+                    if(numPlacedLargeSpheres<numLargeSpheres)
+                    {
+                        spheres[i].radius = maxRadiusSphere;
+                        ++numPlacedLargeSpheres;
+                    }
+                    else
+                    {
+                        spheres[i].radius = minRadiusSphere;
+                        ++numPlacedSmallSpheres;
+                    }
+                }
+            }
+        }
+    }
 }
 
 std::vector<std::vector<double>> System::GetStates() const
 {
-    std::vector<std::vector<double>> sphereStates;
-    sphereStates.reserve(numSpheres);
+    std::vector<std::vector<double>> sphereStates(numSpheres);
     std::vector<double> sphereState(4);
 
-    for(Sphere sphere : spheres)
+    for(int i=0; i<numSpheres; ++i)
     {
-        sphereState[0] = sphere.position.x;
-        sphereState[1] = sphere.position.y;
-        sphereState[2] = sphere.position.z;
-        sphereState[3] = sphere.radius;
-        sphereStates.push_back(sphereState);
+        sphereState[0] = spheres[i].position.x;
+        sphereState[1] = spheres[i].position.y;
+        sphereState[2] = spheres[i].position.z;
+        sphereState[3] = spheres[i].radius;
+        sphereStates[i] = sphereState;
     }
     return sphereStates;
 }
@@ -217,8 +279,18 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
     {
         if(i!=index)
         {
-            energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
+            // Toggle
+            bool WCA = true;
+            if(WCA)
+            {
+                energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
+            }
+            else
+            {
+                energy += PotentialLennardJones(RadiusSumOf(sphere,spheres[i]),
+                    DistanceBetween(sphere,spheres[i]));
+            }
         }
     }
     return energy;
@@ -236,6 +308,54 @@ double System::PotentialWCA(const double sigmaSummedRadius, const double distanc
     {
         potential = epsilonConstant + 4 * epsilonConstant * (- pow((sigmaSummedRadius/distanceBetweenSpheres),6)
                                         + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
+    }
+    return potential;
+}
+
+double System::PotentialLennardJones(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
+{
+    double potential;
+    const double cutOffDistance = 2.5 * sigmaSummedRadius;
+    const double shift = 0.00407922;
+    if(distanceBetweenSpheres > cutOffDistance)
+    {
+        potential = 0;
+    }
+    else
+    {
+        // Toggle
+        bool kobAndersonParameters = false;
+        double epsilonValue;
+        double sigma;
+        if(kobAndersonParameters)
+        {
+            if(sigmaSummedRadius == 2 * maxRadiusSphere)
+            {
+                epsilonValue = 1.0;
+                sigma = 1.0;
+            }
+            else if(sigmaSummedRadius == 2 * minRadiusSphere)
+            {
+                epsilonValue = 0.5;
+                sigma = 0.88;
+            }
+            else if(sigmaSummedRadius == (maxRadiusSphere + minRadiusSphere))
+            {
+                epsilonValue = 1.5;
+                sigma = 0.8;
+            }
+            else
+            {
+                throw std::out_of_range("Kob Anderson: radii do not match");
+            }
+        }
+        else
+        {
+            epsilonValue = epsilonConstant;
+            sigma = sigmaSummedRadius;
+        }
+        potential = 4 * epsilonValue * (shift - pow((sigma/distanceBetweenSpheres),6)
+                                        + pow((sigma/distanceBetweenSpheres),12));
     }
     return potential;
 }
