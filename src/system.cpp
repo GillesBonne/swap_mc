@@ -6,6 +6,7 @@
 #include <random>
 #include <cassert>
 #include <algorithm>
+#include <string>
 
 #include "timer.h"
 
@@ -15,7 +16,7 @@
 #include "../data_analysis/src/states.h"
 #include "../data_analysis/src/states.cpp"
 
-System::System(const Config& config, const bool usePreviousStates)
+System::System(const Config& config, const bool usePreviousStates, std::string previousID)
     :   numSpheres(config.GetNumSpheres()),
         spheres(numSpheres),
         ratioSizeSphere(config.GetRatioSizeSphere()),
@@ -46,7 +47,9 @@ System::System(const Config& config, const bool usePreviousStates)
     if(usePreviousStates)
     {
         std::cout<<"Use previous states"<<std::endl;
-        States states("data/outputStates.txt", numSpheres);
+        std::string previousConfigFile = "data/outputStates" + previousID + ".txt";
+        States states(previousConfigFile, numSpheres);
+
         int maxSampleIndex = states.GetMaxSampleIndex();
 
         std::vector<std::vector<double>> spherePositions(numSpheres);

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <random>
+#include <string>
 
 #include "sphere.h"
 #include "config.h"
@@ -45,7 +46,7 @@ private:
 
 public:
     // Constructor
-    System(const Config& config, const bool usePreviousStates);
+    System(const Config& config, const bool usePreviousStates, std::string previousID);
 
     int FindLatticeWidth() const;
     void PrintStates() const;

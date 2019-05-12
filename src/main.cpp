@@ -7,7 +7,6 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <array>
 #include <stdexcept>
 #include <chrono>
 #include <ctime>
@@ -18,54 +17,88 @@
 
 #include "export2D.h"
 
-void MonteCarlo(Config config, bool usePreviousStates);
+void MonteCarlo(Config config, bool usePreviousStates,
+        std::string simulationID, std::string previousID);
 void PrintAcceptanceInfo(const System& system, int numIterations);
 void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
-std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current, double offset);
+std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current,
+        double offset);
+void CheckFileExistence(std::string fileName);
 
+// Argument options:
+// 0
+// 1: SimulationID
+// 2: SimulationID PreviousSimulationID
 int main(int argc, char* argv[])
 {
     Timer timer;
 
-    bool usePreviousStates = false;
-    if(argc>1)
-    {
-        if(argv[1]==std::string("y"))
-        {
-            usePreviousStates = true;
-        }
-    }
-
     try
     {
-        std::string configFile = "config.txt";
+        bool usePreviousStates = false;
+        std::string simulationID;
+        std::string previousID;
+        if(argc==1)
+        {
+            std::cout<<"Overwriting data files without ID."<<std::endl;
+        }
+        else if(argc==2)
+        {
+            simulationID = argv[1];
+            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
+        }
+        else if(argc==3)
+        {
+            simulationID = argv[1];
+            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
+            previousID = argv[2];
+            std::cout<<"Previous ID: "<<previousID<<std::endl;
+
+            std::string previousConfigFile = "data/lastConfig" + previousID + ".txt";
+            CheckFileExistence(previousConfigFile);
+
+            usePreviousStates = true;
+        }
+        else
+        {
+            throw std::out_of_range("Wrong number of arguments.");
+        }
+
+        std::string configFile = "config" + simulationID + ".txt";
+        CheckFileExistence(configFile);
         Config config(configFile);
 
-        CopyFile(configFile, "data/lastConfig.txt");
+        std::string copyConfigFile = "data/lastConfig" + simulationID + ".txt";
+        CopyFile(configFile, copyConfigFile);
 
-        MonteCarlo(config, usePreviousStates);
+        MonteCarlo(config, usePreviousStates, simulationID, previousID);
     }
     catch(std::out_of_range& e)
     {
         std::cout<<e.what()<<std::endl;
     }
+    catch(std::invalid_argument& e)
+    {
+        std::cout<<e.what()<<std::endl;
+    }
 }
 
-void MonteCarlo(Config config, bool usePreviousStates)
+void MonteCarlo(Config config, bool usePreviousStates,
+        std::string simulationID, std::string previousID)
 {
-    System system(config, usePreviousStates);
+    System system(config, usePreviousStates, previousID);
 
     int numIterations = config.GetNumIterations();
 
-    std::string outputStatesFile = "data/outputStates.txt";
+    std::string outputStatesFile = "data/outputStates" + simulationID + ".txt";
     ClearContents(outputStatesFile);
     std::vector<std::vector<double>> exportedStates;
 
-    std::string outputIterationsFile = "data/iterations.txt";
-    std::string outputEnergyFile = "data/energy.txt";
-    std::string outputPressureFile = "data/pressure.txt";
-    std::string outputSwapFile = "data/swapAcceptance.txt";
-    std::string outputTranslationFile = "data/translationAcceptance.txt";
+    std::string outputIterationsFile = "data/iterations" + simulationID + ".txt";
+    std::string outputEnergyFile = "data/energy" + simulationID + ".txt";
+    std::string outputPressureFile = "data/pressure" + simulationID + ".txt";
+    std::string outputSwapFile = "data/swapAcceptance" + simulationID + ".txt";
+    std::string outputTranslationFile = "data/translationAcceptance" + simulationID + ".txt";
     ClearContents(outputIterationsFile);
     ClearContents(outputEnergyFile);
     ClearContents(outputPressureFile);
@@ -176,4 +209,14 @@ std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point curren
     std::string dateTimeInfoString(dateTimeInfo);
     auto dateTime = dateTimeInfoString.substr(4,15);
     return dateTime;
+}
+
+void CheckFileExistence(std::string fileName)
+{
+    std::ifstream file(fileName);
+    if(!file)
+    {
+        std::string message = fileName + " does not exist.";
+        throw std::invalid_argument(message);
+    }
 }
