@@ -53,8 +53,12 @@ int main(int argc, char* argv[])
             std::cout<<"Simulation ID: "<<simulationID<<std::endl;
             previousID = argv[2];
             std::cout<<"Previous ID: "<<previousID<<std::endl;
+            if(simulationID == previousID)
+            {
+                throw std::invalid_argument("Current and previous ID are equal.");
+            }
 
-            std::string previousConfigFile = "data/lastConfig" + previousID + ".txt";
+            std::string previousConfigFile = "data/data" + previousID + "/lastConfig.txt";
             CheckFileExistence(previousConfigFile);
 
             usePreviousStates = true;
@@ -68,7 +72,13 @@ int main(int argc, char* argv[])
         CheckFileExistence(configFile);
         Config config(configFile);
 
-        std::string copyConfigFile = "data/lastConfig" + simulationID + ".txt";
+        std::string data_command = "[ -d data ] || mkdir data";
+        std::system(data_command.c_str());
+
+        std::string command = "mkdir data/data" + simulationID;
+
+        std::system(command.c_str());
+        std::string copyConfigFile = "data/data" + simulationID + "/lastConfig.txt";
         CopyFile(configFile, copyConfigFile);
 
         MonteCarlo(config, usePreviousStates, simulationID, previousID);
@@ -90,15 +100,15 @@ void MonteCarlo(Config config, bool usePreviousStates,
 
     int numIterations = config.GetNumIterations();
 
-    std::string outputStatesFile = "data/outputStates" + simulationID + ".txt";
+    std::string outputStatesFile = "data/data" + simulationID + "/outputStates.txt";
     ClearContents(outputStatesFile);
     std::vector<std::vector<double>> exportedStates;
 
-    std::string outputIterationsFile = "data/iterations" + simulationID + ".txt";
-    std::string outputEnergyFile = "data/energy" + simulationID + ".txt";
-    std::string outputPressureFile = "data/pressure" + simulationID + ".txt";
-    std::string outputSwapFile = "data/swapAcceptance" + simulationID + ".txt";
-    std::string outputTranslationFile = "data/translationAcceptance" + simulationID + ".txt";
+    std::string outputIterationsFile = "data/data" + simulationID + "/iterations.txt";
+    std::string outputEnergyFile ="data/data" + simulationID + "/energy.txt";
+    std::string outputPressureFile = "data/data" + simulationID + "/pressure.txt";
+    std::string outputSwapFile = "data/data" + simulationID + "/swapAcceptance.txt";
+    std::string outputTranslationFile = "data/data" + simulationID + "/translationAcceptance.txt";
     ClearContents(outputIterationsFile);
     ClearContents(outputEnergyFile);
     ClearContents(outputPressureFile);
@@ -155,7 +165,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 int numProgressUpdatesToDo = numProgressUpdates - whichPrint;
                 auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*numProgressUpdatesToDo;
 
-                int progress = 100*i/(numIterations-1);
+                int progress = (int) 100*i/(numIterations-1);
 
                 auto dateTime = GetCurrentTime(current, 0);
 

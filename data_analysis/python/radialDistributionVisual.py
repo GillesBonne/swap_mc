@@ -6,7 +6,7 @@ r = []
 g = []
 
 bin_size_on_line = False
-with open("../data/radialDistribution.txt","r") as fileRadial:
+with open("../data/data/radialDistribution.txt","r") as fileRadial:
     for line in fileRadial:
         if bin_size_on_line:
             bin_size = float(line)
@@ -29,7 +29,7 @@ k = []
 s = []
 
 bin_size_on_line = False
-with open("../data/structureFactor.txt","r") as fileStructure:
+with open("../data/data/structureFactor.txt","r") as fileStructure:
     for line in fileStructure:
         if bin_size_on_line:
             bin_size = float(line)

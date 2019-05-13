@@ -3,7 +3,7 @@
 from vpython import *
 import numpy as np
 
-with open("../../data/lastConfig.txt","r") as config_file:
+with open("../../data/data/lastConfig.txt","r") as config_file:
     for line_individual in config_file:
         line = line_individual.replace(" ", "")
         line_split = line.split("=")
@@ -29,7 +29,7 @@ radius = np.zeros((num_spheres,num_sample_steps))
 
 iteration_on_line = False
 sample_step = 0
-with open("../../data/outputStates.txt","r") as file:
+with open("../../data/data/outputStates.txt","r") as file:
     for line in file:
         if iteration_on_line:
             iteration = int(line)

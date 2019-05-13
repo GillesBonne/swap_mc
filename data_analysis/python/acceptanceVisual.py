@@ -7,13 +7,13 @@ iterations = []
 swap_acceptance = []
 translation_acceptance = []
 
-with open("../../data/iterations.txt","r") as file:
+with open("../../data/data/iterations.txt","r") as file:
     for line in file:
         iterations.append(float(line))
-with open("../../data/swapAcceptance.txt","r") as file:
+with open("../../data/data/swapAcceptance.txt","r") as file:
     for line in file:
         swap_acceptance.append(float(line))
-with open("../../data/translationAcceptance.txt","r") as file:
+with open("../../data/data/translationAcceptance.txt","r") as file:
     for line in file:
         translation_acceptance.append(float(line))
 

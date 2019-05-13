@@ -47,7 +47,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     if(usePreviousStates)
     {
         std::cout<<"Use previous states"<<std::endl;
-        std::string previousConfigFile = "data/outputStates" + previousID + ".txt";
+        std::string previousConfigFile = "data/data" + previousID + "/outputStates.txt";
         States states(previousConfigFile, numSpheres);
 
         int maxSampleIndex = states.GetMaxSampleIndex();
@@ -93,7 +93,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     }
 
     // Toggle
-    bool continuousPolydisperse = false;
+    bool continuousPolydisperse = true;
     if(continuousPolydisperse)
     {
         std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
@@ -283,7 +283,7 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
         if(i!=index)
         {
             // Toggle
-            bool WCA = true;
+            bool WCA = false;
             if(WCA)
             {
                 energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
@@ -365,7 +365,20 @@ double System::PotentialLennardJones(const double sigmaSummedRadius, const doubl
 
 double System::RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const
 {
-    return sphere1.radius + sphere2.radius;
+    // Toggle
+    bool additive = true;
+    if(additive)
+    {
+        return sphere1.radius + sphere2.radius;
+    }
+    else
+    {
+        double nonAdditivityConstant = 0.2;
+
+        return (sphere1.radius + sphere2.radius)*
+            (1 - 2*nonAdditivityConstant*abs(sphere1.radius - sphere2.radius));
+
+    }
 }
 
 double System::DistanceBetween(const Sphere& sphere1, const Sphere& sphere2)
