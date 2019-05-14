@@ -140,7 +140,8 @@ void MonteCarlo(Config config, bool usePreviousStates,
             int numAcceptedSwaps = system.GetAcceptedSwaps();
             int numAcceptedTranslations = system.GetAcceptedTranslations();
             double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSamples;
-            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)/skipSamples;
+            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)
+                                                                                    /skipSamples;
 
             ExportItem(swapRatio, outputSwapFile);
             ExportItem(translationRatio, outputTranslationFile);
@@ -189,7 +190,6 @@ void MonteCarlo(Config config, bool usePreviousStates,
                         <<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
                         <<" at UTC "<<dateTime<<std::endl;
                 }
-
                 std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)
                     <<std::endl<<std::endl;
             }

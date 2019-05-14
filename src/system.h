@@ -44,6 +44,24 @@ private:
     std::uniform_real_distribution<double> randomPosNegDouble;
     std::uniform_int_distribution<int> randomParticle;
 
+    //// Toggles ////
+    // Possible combination.
+    /* Continuous polydisperse & WCA.
+     * Continuous polydisperse & LJ & Additivity.
+     * Radius ratio equal (5050) & WCA.
+     * Radius ratio not eq(8020) & WCA & KobAnderson.
+     */
+    // Continuous polydisperse vs binary mixture.
+    bool toggleContinuousPolydisperse = true;
+    // Radius large:small = 50:50 vs 80:20.
+    bool toggleRadiusRatioEqual = true;
+    // WCA vs LJ.
+    bool toggleWCA = false;
+    // Kob Anderson interaction parameters vs general case.
+    bool toggleKobAnderson = false;
+    // Scale the degree of additivity of the radii.
+    bool toggleAdditivity = true;
+
 public:
     // Constructor
     System(const Config& config, const bool usePreviousStates, std::string previousID);
@@ -60,7 +78,7 @@ public:
     double CalculateEnergy(const int index, const Sphere& sphere);
 
     double PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
-    double PotentialLennardJones(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
+    double PotentialLJ(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
 
     double RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const;
     double DistanceBetween(const Sphere& sphere1, const Sphere& sphere2);
@@ -82,6 +100,7 @@ public:
     double DistanceBetweenCoordinates(double coordinate1, double coordinate2);
 
     double ForceWCA(double difference, double distanceBetween, double sigmaSummedRadius);
+    double ForceLJ(double difference, double distanceBetween, double sigmaSummedRadius);
 };
 
 #endif

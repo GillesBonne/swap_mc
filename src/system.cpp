@@ -92,9 +92,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         }
     }
 
-    // Toggle
-    bool continuousPolydisperse = true;
-    if(continuousPolydisperse)
+    if(toggleContinuousPolydisperse)
     {
         std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
         for(int i=0; i<numSpheres; ++i)
@@ -104,9 +102,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     }
     else
     {
-        // Toggle: if radius ratio is not equal then ratio large:small = 80:20
-        bool radiusRatioEqual = true;
-        if(radiusRatioEqual)
+        if(toggleRadiusRatioEqual)
         {
             const int numSmallSpheres = 0.5 * numSpheres;
             const int numLargeSpheres = numSpheres - numSmallSpheres;
@@ -282,16 +278,14 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
     {
         if(i!=index)
         {
-            // Toggle
-            bool WCA = false;
-            if(WCA)
+            if(toggleWCA)
             {
                 energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
             }
             else
             {
-                energy += PotentialLennardJones(RadiusSumOf(sphere,spheres[i]),
+                energy += PotentialLJ(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
             }
         }
@@ -309,28 +303,9 @@ double System::PotentialWCA(const double sigmaSummedRadius, const double distanc
     }
     else
     {
-        potential = epsilonConstant + 4 * epsilonConstant * (- pow((sigmaSummedRadius/distanceBetweenSpheres),6)
-                                        + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
-    }
-    return potential;
-}
-
-double System::PotentialLennardJones(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
-{
-    double potential;
-    const double cutOffDistance = 2.5 * sigmaSummedRadius;
-    const double shift = 0.00407922;
-    if(distanceBetweenSpheres > cutOffDistance)
-    {
-        potential = 0;
-    }
-    else
-    {
-        // Toggle
-        bool kobAndersonParameters = false;
         double epsilonValue;
         double sigma;
-        if(kobAndersonParameters)
+        if(toggleKobAnderson)
         {
             if(sigmaSummedRadius == 2 * maxRadiusSphere)
             {
@@ -349,7 +324,7 @@ double System::PotentialLennardJones(const double sigmaSummedRadius, const doubl
             }
             else
             {
-                throw std::out_of_range("Kob Anderson: radii do not match");
+                throw std::out_of_range("Kob Anderson: radii do not match in potential calculation.");
             }
         }
         else
@@ -357,17 +332,32 @@ double System::PotentialLennardJones(const double sigmaSummedRadius, const doubl
             epsilonValue = epsilonConstant;
             sigma = sigmaSummedRadius;
         }
-        potential = 4 * epsilonValue * (shift - pow((sigma/distanceBetweenSpheres),6)
-                                        + pow((sigma/distanceBetweenSpheres),12));
+        potential = epsilonValue + 4 * epsilonValue * (- pow((sigma/distanceBetweenSpheres),6)
+                                    + pow((sigma/distanceBetweenSpheres),12));
+    }
+    return potential;
+}
+
+double System::PotentialLJ(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
+{
+    double potential;
+    const double cutOffDistance = 2.5 * sigmaSummedRadius;
+    const double shift = 0.00407922;
+    if(distanceBetweenSpheres > cutOffDistance)
+    {
+        potential = 0;
+    }
+    else
+    {
+        potential = (shift - pow((sigmaSummedRadius/distanceBetweenSpheres),6)
+                            + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
     }
     return potential;
 }
 
 double System::RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const
 {
-    // Toggle
-    bool additive = true;
-    if(additive)
+    if(toggleAdditivity)
     {
         return sphere1.radius + sphere2.radius;
     }
@@ -377,7 +367,6 @@ double System::RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const
 
         return (sphere1.radius + sphere2.radius)*
             (1 - 2*nonAdditivityConstant*abs(sphere1.radius - sphere2.radius));
-
     }
 }
 
@@ -460,8 +449,16 @@ double System::GetTotalEnergy()
     {
         for(int j=i+1; j < numSpheres; ++j)
         {
-            energy += PotentialWCA(RadiusSumOf(spheres[i],spheres[j]),
-                    DistanceBetween(spheres[i],spheres[j]));
+            if(toggleWCA)
+            {
+                energy += PotentialWCA(RadiusSumOf(spheres[i],spheres[j]),
+                        DistanceBetween(spheres[i],spheres[j]));
+            }
+            else
+            {
+                energy += PotentialLJ(RadiusSumOf(spheres[i],spheres[j]),
+                        DistanceBetween(spheres[i],spheres[j]));
+            }
         }
     }
     return energy;
@@ -492,9 +489,19 @@ double System::GetPressure()
                                                  spheres[j].position.z);
             distanceSquaredBetween = xDiff*xDiff+yDiff*yDiff+zDiff*zDiff;
             sigmaSummedRadius = RadiusSumOf(spheres[i],spheres[j]);
-            xForce = ForceWCA(xDiff, distanceSquaredBetween, sigmaSummedRadius);
-            yForce = ForceWCA(yDiff, distanceSquaredBetween, sigmaSummedRadius);
-            zForce = ForceWCA(zDiff, distanceSquaredBetween, sigmaSummedRadius);
+
+            if(toggleWCA)
+            {
+                xForce = ForceWCA(xDiff, distanceSquaredBetween, sigmaSummedRadius);
+                yForce = ForceWCA(yDiff, distanceSquaredBetween, sigmaSummedRadius);
+                zForce = ForceWCA(zDiff, distanceSquaredBetween, sigmaSummedRadius);
+            }
+            else
+            {
+                xForce = ForceLJ(xDiff, distanceSquaredBetween, sigmaSummedRadius);
+                yForce = ForceLJ(yDiff, distanceSquaredBetween, sigmaSummedRadius);
+                zForce = ForceLJ(zDiff, distanceSquaredBetween, sigmaSummedRadius);
+            }
 
             pressure += xDiff*xForce + yDiff*yForce + zDiff*zForce;
         }
@@ -522,7 +529,53 @@ double System::ForceWCA(double difference, double SqDistance, double sigmaSummed
     }
     else
     {
-        force = 24 * epsilonConstant * difference * pow(sigmaSummedRadius, 6)
+        double epsilonValue;
+        double sigma;
+        if(toggleKobAnderson)
+        {
+            if(sigmaSummedRadius == 2 * maxRadiusSphere)
+            {
+                epsilonValue = 1.0;
+                sigma = 1.0;
+            }
+            else if(sigmaSummedRadius == 2 * minRadiusSphere)
+            {
+                epsilonValue = 0.5;
+                sigma = 0.88;
+            }
+            else if(sigmaSummedRadius == (maxRadiusSphere + minRadiusSphere))
+            {
+                epsilonValue = 1.5;
+                sigma = 0.8;
+            }
+            else
+            {
+                throw std::out_of_range("Kob Anderson: radii do not match in force calculation.");
+            }
+        }
+        else
+        {
+            epsilonValue = epsilonConstant;
+            sigma = sigmaSummedRadius;
+        }
+        force = 24 * epsilonValue * difference * pow(sigma, 6)
+            * (2*pow(sigma, 6)-SqDistance*SqDistance*SqDistance)
+            / (pow(SqDistance,7));
+    }
+    return force;
+}
+
+double System::ForceLJ(double difference, double SqDistance, double sigmaSummedRadius)
+{
+    double force;
+    const double cutOffDistance = 2.5 * sigmaSummedRadius;
+    if(SqDistance > (cutOffDistance*cutOffDistance))
+    {
+        force = 0;
+    }
+    else
+    {
+        force = 6 * difference * pow(sigmaSummedRadius, 6)
             * (2*pow(sigmaSummedRadius, 6)-SqDistance*SqDistance*SqDistance)
             / (pow(SqDistance,7));
     }
