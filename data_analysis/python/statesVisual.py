@@ -63,7 +63,7 @@ for i in range(num_spheres):
     spheres.append(sphere(radius=radius[i][0], pos=vector(x[i][0],y[i][0],z[i][0])))
 
 for i in range(1,num_sample_steps):
-    sleep(0.1)
+    sleep(0.01)
     for j in range(num_spheres):
         spheres[j].radius = radius[j][i]
         spheres[j].pos.x = x[j][i]

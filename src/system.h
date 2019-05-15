@@ -46,21 +46,26 @@ private:
 
     //// Toggles ////
     // Possible combination.
-    /* Continuous polydisperse & WCA.
-     * Continuous polydisperse & LJ & Additivity.
-     * Radius ratio equal (5050) & WCA.
-     * Radius ratio not eq(8020) & WCA & KobAnderson.
+    /* WCA & continuous polydisperse.
+     * SRPP & continuous polydisperse & change additivity.
+     * WCA & binary & 5050.
+     * WCA & binary & 8020 & KobAnderson.
      */
-    // Continuous polydisperse vs binary mixture.
-    bool toggleContinuousPolydisperse = true;
-    // Radius large:small = 50:50 vs 80:20.
-    bool toggleRadiusRatioEqual = true;
-    // WCA vs LJ.
-    bool toggleWCA = false;
-    // Kob Anderson interaction parameters vs general case.
-    bool toggleKobAnderson = false;
+    const bool toggleWCA = false;
+    const bool toggleSRPP = true;
+
+    const bool toggleContinuousPolydisperse = true;
+    const bool toggleBinaryMixture = false;
+
+    // If binary then size ratio large:small = 50:50 or 80:20
+    const bool toggleRadius5050 = false;
+    const bool toggleRadius8020 = false;
+
+    // If WCA, binary, 8020, Kob Anderson interaction parameters vs general case.
+    const bool toggleKobAnderson = false;
+
     // Scale the degree of additivity of the radii.
-    bool toggleAdditivity = true;
+    const bool toggleChangeAdditivity = true;
 
 public:
     // Constructor
@@ -78,7 +83,7 @@ public:
     double CalculateEnergy(const int index, const Sphere& sphere);
 
     double PotentialWCA(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
-    double PotentialLJ(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
+    double PotentialSRPP(const double sigmaSummedRadius, const double distanceBetweenSpheres) const;
 
     double RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const;
     double DistanceBetween(const Sphere& sphere1, const Sphere& sphere2);
@@ -93,14 +98,15 @@ public:
     int GetAcceptedTranslations() const;
     int GetAcceptedSwaps() const;
 
+    // Analysis function
     double GetTotalEnergy();
 
     double GetPressure();
 
     double DistanceBetweenCoordinates(double coordinate1, double coordinate2);
 
-    double ForceWCA(double difference, double distanceBetween, double sigmaSummedRadius);
-    double ForceLJ(double difference, double distanceBetween, double sigmaSummedRadius);
+    double ForceWCA(double difference, double sqDistance, double sigmaSummedRadius);
+    double ForceSRPP(double difference, double sqDistance, double sigmaSummedRadius);
 };
 
 #endif

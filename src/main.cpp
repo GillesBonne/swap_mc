@@ -76,8 +76,8 @@ int main(int argc, char* argv[])
         std::system(data_command.c_str());
 
         std::string command = "mkdir data/data" + simulationID;
-
         std::system(command.c_str());
+
         std::string copyConfigFile = "data/data" + simulationID + "/lastConfig.txt";
         CopyFile(configFile, copyConfigFile);
 
@@ -98,7 +98,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
 {
     System system(config, usePreviousStates, previousID);
 
-    int numIterations = config.GetNumIterations();
+    const int numIterations = config.GetNumIterations();
 
     std::string outputStatesFile = "data/data" + simulationID + "/outputStates.txt";
     ClearContents(outputStatesFile);
@@ -125,14 +125,14 @@ void MonteCarlo(Config config, bool usePreviousStates,
     std::cout<<"Simulation started at "<<GetCurrentTime(start, 0)<<std::endl<<std::endl;
 
     int whichPrint = 0;
-    for(int i=0; i<numIterations; ++i)
+    for(int it=0; it<numIterations; ++it)
     {
-        if(i%skipSamples==0)
+        if(it%skipSamples==0)
         {
             exportedStates = system.GetStates();
-            Export2D(exportedStates, outputStatesFile, i);
+            Export2D(exportedStates, outputStatesFile, it);
 
-            ExportItem(i, outputIterationsFile);
+            ExportItem(it, outputIterationsFile);
             ExportItem(system.GetTotalEnergy(), outputEnergyFile);
             ExportItem(system.GetPressure(), outputPressureFile);
 
@@ -156,9 +156,9 @@ void MonteCarlo(Config config, bool usePreviousStates,
 
         // Printing progress and ETA.
         int numProgressUpdates = 10;
-        if(i%((int) (numIterations-1)/numProgressUpdates)==0)
+        if(it%((int) (numIterations-1)/numProgressUpdates)==0)
         {
-            if(i!=0)
+            if(it!=0)
             {
                 whichPrint++;
                 auto current = std::chrono::high_resolution_clock::now();
@@ -166,28 +166,26 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 int numProgressUpdatesToDo = numProgressUpdates - whichPrint;
                 auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*numProgressUpdatesToDo;
 
-                int progress = (int) 100*i/(numIterations-1);
+                int progress = (int) 100*it/(numIterations-1);
 
                 auto dateTime = GetCurrentTime(current, 0);
 
                 double secondsLeft = estimatedTimeOfCompletion.count();
 
+                std::cout<<std::setw(3)<<progress<<"%";
                 if(secondsLeft > 3600 * numProgressUpdatesToDo)
                 {
-                    std::cout<<std::setw(3)<<progress<<"%"
-                        <<"\t ETA: "<< std::setw(12)<<secondsLeft/3600<<" hours"
+                    std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/3600<<" hours"
                         <<"\t at UTC "<<dateTime<<std::endl;
                 }
                 else if(secondsLeft > 60 * numProgressUpdatesToDo)
                 {
-                    std::cout<<std::setw(3)<<progress<<"%"
-                        <<"\t ETA: "<< std::setw(12)<<secondsLeft/60<<" min"
+                    std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/60<<" min"
                         <<"\t at UTC "<<dateTime<<std::endl;
                 }
                 else
                 {
-                    std::cout<<std::setw(3)<<progress<<"%"
-                        <<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
+                    std::cout<<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
                         <<" at UTC "<<dateTime<<std::endl;
                 }
                 std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)

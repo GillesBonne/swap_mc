@@ -34,6 +34,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         randomParticle(0,numSpheres-1)
 {
     Timer timer;
+
     assert(numSpheres > 1);
     assert(std::pow(latticeWidth,3) >= numSpheres);
 
@@ -100,9 +101,9 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
             spheres[i].radius = randomDoubleMinMaxSize(mersenneTwister);
         }
     }
-    else
+    if(toggleBinaryMixture)
     {
-        if(toggleRadiusRatioEqual)
+        if(toggleRadius5050)
         {
             const int numSmallSpheres = 0.5 * numSpheres;
             const int numLargeSpheres = numSpheres - numSmallSpheres;
@@ -114,6 +115,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
             for(int i=0; i<numSpheres; ++i)
             {
                 double randomRadius = randomDouble(mersenneTwister);
+
                 if(randomRadius <= 0.5)
                 {
                     if(numPlacedSmallSpheres<numSmallSpheres)
@@ -142,7 +144,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
                 }
             }
         }
-        else
+        if(toggleRadius8020)
         {
             const int numSmallSpheres = 0.2 * numSpheres;
             const int numLargeSpheres = numSpheres - numSmallSpheres;
@@ -283,9 +285,9 @@ double System::CalculateEnergy(const int index, const Sphere& sphere)
                 energy += PotentialWCA(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
             }
-            else
+            if(toggleSRPP)
             {
-                energy += PotentialLJ(RadiusSumOf(sphere,spheres[i]),
+                energy += PotentialSRPP(RadiusSumOf(sphere,spheres[i]),
                     DistanceBetween(sphere,spheres[i]));
             }
         }
@@ -338,35 +340,41 @@ double System::PotentialWCA(const double sigmaSummedRadius, const double distanc
     return potential;
 }
 
-double System::PotentialLJ(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
+double System::PotentialSRPP(const double sigmaSummedRadius, const double distanceBetweenSpheres) const
 {
     double potential;
-    const double cutOffDistance = 2.5 * sigmaSummedRadius;
-    const double shift = 0.00407922;
+    const double cutOffDistance = 1.25 * sigmaSummedRadius;
     if(distanceBetweenSpheres > cutOffDistance)
     {
         potential = 0;
     }
     else
     {
-        potential = (shift - pow((sigmaSummedRadius/distanceBetweenSpheres),6)
-                            + pow((sigmaSummedRadius/distanceBetweenSpheres),12));
+        const int pairPotentialParameter = 12;
+        const double c0 = -1.92415;
+        const double c2 = 2.11106;
+        const double c4 = -0.591097;
+
+        potential = pow((sigmaSummedRadius/distanceBetweenSpheres),pairPotentialParameter)
+                        + c4 * pow((distanceBetweenSpheres/sigmaSummedRadius),4)
+                        + c2 * pow((distanceBetweenSpheres/sigmaSummedRadius),2)
+                        + c0;
     }
     return potential;
 }
 
 double System::RadiusSumOf(const Sphere& sphere1, const Sphere& sphere2) const
 {
-    if(toggleAdditivity)
-    {
-        return sphere1.radius + sphere2.radius;
-    }
-    else
+    if(toggleChangeAdditivity)
     {
         double nonAdditivityConstant = 0.2;
 
         return (sphere1.radius + sphere2.radius)*
             (1 - 2*nonAdditivityConstant*abs(sphere1.radius - sphere2.radius));
+    }
+    else
+    {
+        return sphere1.radius + sphere2.radius;
     }
 }
 
@@ -454,9 +462,9 @@ double System::GetTotalEnergy()
                 energy += PotentialWCA(RadiusSumOf(spheres[i],spheres[j]),
                         DistanceBetween(spheres[i],spheres[j]));
             }
-            else
+            if(toggleSRPP)
             {
-                energy += PotentialLJ(RadiusSumOf(spheres[i],spheres[j]),
+                energy += PotentialSRPP(RadiusSumOf(spheres[i],spheres[j]),
                         DistanceBetween(spheres[i],spheres[j]));
             }
         }
@@ -496,11 +504,11 @@ double System::GetPressure()
                 yForce = ForceWCA(yDiff, distanceSquaredBetween, sigmaSummedRadius);
                 zForce = ForceWCA(zDiff, distanceSquaredBetween, sigmaSummedRadius);
             }
-            else
+            if(toggleSRPP)
             {
-                xForce = ForceLJ(xDiff, distanceSquaredBetween, sigmaSummedRadius);
-                yForce = ForceLJ(yDiff, distanceSquaredBetween, sigmaSummedRadius);
-                zForce = ForceLJ(zDiff, distanceSquaredBetween, sigmaSummedRadius);
+                xForce = ForceSRPP(xDiff, distanceSquaredBetween, sigmaSummedRadius);
+                yForce = ForceSRPP(yDiff, distanceSquaredBetween, sigmaSummedRadius);
+                zForce = ForceSRPP(zDiff, distanceSquaredBetween, sigmaSummedRadius);
             }
 
             pressure += xDiff*xForce + yDiff*yForce + zDiff*zForce;
@@ -519,11 +527,11 @@ double System::DistanceBetweenCoordinates(double coordinate1, double coordinate2
     return difference;
 }
 
-double System::ForceWCA(double difference, double SqDistance, double sigmaSummedRadius)
+double System::ForceWCA(double difference, double sqDistance, double sigmaSummedRadius)
 {
     double force;
     const double cutOffDistance = 1.12246204831 * sigmaSummedRadius;
-    if(SqDistance > (cutOffDistance*cutOffDistance))
+    if(sqDistance > (cutOffDistance*cutOffDistance))
     {
         force = 0;
     }
@@ -559,25 +567,29 @@ double System::ForceWCA(double difference, double SqDistance, double sigmaSummed
             sigma = sigmaSummedRadius;
         }
         force = 24 * epsilonValue * difference * pow(sigma, 6)
-            * (2*pow(sigma, 6)-SqDistance*SqDistance*SqDistance)
-            / (pow(SqDistance,7));
+            * (2*pow(sigma, 6)-sqDistance*sqDistance*sqDistance)
+            / (pow(sqDistance,7));
     }
     return force;
 }
 
-double System::ForceLJ(double difference, double SqDistance, double sigmaSummedRadius)
+double System::ForceSRPP(double difference, double sqDistance, double sigmaSummedRadius)
 {
     double force;
-    const double cutOffDistance = 2.5 * sigmaSummedRadius;
-    if(SqDistance > (cutOffDistance*cutOffDistance))
+    const double cutOffDistance = 1.25 * sigmaSummedRadius;
+    if(sqDistance > (cutOffDistance*cutOffDistance))
     {
         force = 0;
     }
     else
     {
-        force = 6 * difference * pow(sigmaSummedRadius, 6)
-            * (2*pow(sigmaSummedRadius, 6)-SqDistance*SqDistance*SqDistance)
-            / (pow(SqDistance,7));
+        const int pairPotentialParameter = 12;
+        const double c2 = 2.11106;
+        const double c4 = -0.591097;
+
+        force = - difference * (4*c4*sqDistance/(pow(sigmaSummedRadius,4))
+                                + 2*c2/(sigmaSummedRadius*sigmaSummedRadius)
+                                - pairPotentialParameter/(sqDistance) * pow((sigmaSummedRadius/sqrt(sqDistance)),pairPotentialParameter));
     }
     return force;
 }
