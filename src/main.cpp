@@ -99,6 +99,8 @@ void MonteCarlo(Config config, bool usePreviousStates,
     System system(config, usePreviousStates, previousID);
 
     const int numIterations = config.GetNumIterations();
+    const int skipSamples = config.GetSkipSamples();
+    const double swapProbability = config.GetSwapProbability();
 
     std::string outputStatesFile = "data/data" + simulationID + "/outputStates.txt";
     ClearContents(outputStatesFile);
@@ -115,15 +117,12 @@ void MonteCarlo(Config config, bool usePreviousStates,
     ClearContents(outputSwapFile);
     ClearContents(outputTranslationFile);
 
-    int prevAcceptedSwaps = 0;
-    int prevAcceptedTranslations = 0;
-
-    const int skipSamples = config.GetSkipSamples();
-
     // Record start time.
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::cout<<"Simulation started at "<<GetCurrentTime(start, 0)<<std::endl<<std::endl;
 
+    int attemptedSwaps = 0;
+    int attemptedTranslations = 0;
     int whichPrint = 0;
     for(int it=0; it<numIterations; ++it)
     {
@@ -137,22 +136,23 @@ void MonteCarlo(Config config, bool usePreviousStates,
             ExportItem(system.GetPressure(), outputPressureFile);
 
             // Export MC acceptance ratios.
-            int numAcceptedSwaps = system.GetAcceptedSwaps();
-            int numAcceptedTranslations = system.GetAcceptedTranslations();
-            double swapRatio = (double) (numAcceptedSwaps-prevAcceptedSwaps)/skipSamples;
-            double translationRatio = (double) (numAcceptedTranslations-prevAcceptedTranslations)
-                                                                                    /skipSamples;
+            double swapRatio = (double) system.GetAcceptedSwaps()/attemptedSwaps;
+            double translationRatio = (double) system.GetAcceptedTranslations()/attemptedTranslations;
 
             ExportItem(swapRatio, outputSwapFile);
             ExportItem(translationRatio, outputTranslationFile);
-
-            prevAcceptedSwaps = numAcceptedSwaps;
-            prevAcceptedTranslations = numAcceptedTranslations;
         }
 
-        system.AttemptSwap();
-
-        system.AttemptTranslation();
+        if(system.IsChosenWithProbability(swapProbability))
+        {
+            system.AttemptSwap();
+            ++attemptedSwaps;
+        }
+        else
+        {
+            system.AttemptTranslation();
+            ++attemptedTranslations;
+        }
 
         // Printing progress and ETA.
         int numProgressUpdates = 10;
@@ -176,23 +176,25 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 if(secondsLeft > 3600 * numProgressUpdatesToDo)
                 {
                     std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/3600<<" hours"
-                        <<"\t at UTC "<<dateTime<<std::endl;
+                        <<"\t at "<<dateTime<<std::endl;
                 }
                 else if(secondsLeft > 60 * numProgressUpdatesToDo)
                 {
                     std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/60<<" min"
-                        <<"\t at UTC "<<dateTime<<std::endl;
+                        <<"\t at "<<dateTime<<std::endl;
                 }
                 else
                 {
                     std::cout<<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
-                        <<" at UTC "<<dateTime<<std::endl;
+                        <<" at "<<dateTime<<std::endl;
                 }
                 std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)
                     <<std::endl<<std::endl;
             }
         }
     }
+    std::cout<<"Attempted swaps: "<<attemptedSwaps<<std::endl;
+    std::cout<<"Attempted translations: "<<attemptedTranslations<<std::endl;
 }
 
 void CopyFile(const std::string& sourceFile, const std::string& destinationFile)

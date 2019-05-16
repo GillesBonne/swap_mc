@@ -25,7 +25,6 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         latticeWidth(config.GetLatticeWidth()),
         latticeParameter(config.GetLatticeParameter()),
         temperatureFixed(config.GetTemperatureFixed()),
-        swapProbability(config.GetSwapProbability()),
         maxTranslationDistanceInMaxParticleSize(config.GetMaxTranslationDistanceInMaxParticleSize()),
         numDensity(config.GetNumDensity()),
         mersenneTwister((std::random_device())()),
@@ -44,7 +43,6 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     // Max tranlationdistances should be such that translation acceptance is between 30-40%
     maxTranslationDistance = maxRadiusSphere*maxTranslationDistanceInMaxParticleSize;
 
-    Sphere sphere;
     if(usePreviousStates)
     {
         std::cout<<"Use previous states"<<std::endl;
@@ -58,16 +56,110 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 
         for(int i=0; i<numSpheres; ++i)
         {
-            sphere.position.x = spherePositions[i][0];
-            sphere.position.y = spherePositions[i][1];
-            sphere.position.z = spherePositions[i][2];
-            sphere.radius = spherePositions[i][3];
-            spheres[i] = sphere;
+            spheres[i].position.x = spherePositions[i][0];
+            spheres[i].position.y = spherePositions[i][1];
+            spheres[i].position.z = spherePositions[i][2];
+            spheres[i].radius = spherePositions[i][3];
         }
     }
     else
     {
         std::cout<<"Do not use previous states"<<std::endl;
+        // Initialize random radii.
+        if(toggleContinuousPolydisperse)
+        {
+            std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
+            for(int i=0; i<numSpheres; ++i)
+            {
+                spheres[i].radius = randomDoubleMinMaxSize(mersenneTwister);
+            }
+        }
+        if(toggleBinaryMixture)
+        {
+            if(toggleRadius5050)
+            {
+                const int numSmallSpheres = 0.5 * numSpheres;
+                const int numLargeSpheres = numSpheres - numSmallSpheres;
+
+                int numPlacedSmallSpheres = 0;
+                int numPlacedLargeSpheres = 0;
+                int randomRadius;
+
+                for(int i=0; i<numSpheres; ++i)
+                {
+                    double randomRadius = randomDouble(mersenneTwister);
+
+                    if(randomRadius <= 0.5)
+                    {
+                        if(numPlacedSmallSpheres<numSmallSpheres)
+                        {
+                            spheres[i].radius = minRadiusSphere;
+                            ++numPlacedSmallSpheres;
+                        }
+                        else
+                        {
+                            spheres[i].radius = maxRadiusSphere;
+                            ++numPlacedLargeSpheres;
+                        }
+                    }
+                    else
+                    {
+                        if(numPlacedLargeSpheres<numLargeSpheres)
+                        {
+                            spheres[i].radius = maxRadiusSphere;
+                            ++numPlacedLargeSpheres;
+                        }
+                        else
+                        {
+                            spheres[i].radius = minRadiusSphere;
+                            ++numPlacedSmallSpheres;
+                        }
+                    }
+                }
+            }
+            if(toggleRadius8020)
+            {
+                const int numSmallSpheres = 0.2 * numSpheres;
+                const int numLargeSpheres = numSpheres - numSmallSpheres;
+
+                int numPlacedSmallSpheres = 0;
+                int numPlacedLargeSpheres = 0;
+                int randomRadius;
+
+                for(int i=0; i<numSpheres; ++i)
+                {
+                    double randomRadius = randomDouble(mersenneTwister);
+                    if(randomRadius <= 0.2)
+                    {
+                        if(numPlacedSmallSpheres<numSmallSpheres)
+                        {
+                            spheres[i].radius = minRadiusSphere;
+                            ++numPlacedSmallSpheres;
+                        }
+                        else
+                        {
+                            spheres[i].radius = maxRadiusSphere;
+                            ++numPlacedLargeSpheres;
+                        }
+                    }
+                    else
+                    {
+                        if(numPlacedLargeSpheres<numLargeSpheres)
+                        {
+                            spheres[i].radius = maxRadiusSphere;
+                            ++numPlacedLargeSpheres;
+                        }
+                        else
+                        {
+                            spheres[i].radius = minRadiusSphere;
+                            ++numPlacedSmallSpheres;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialize positions.
         int numPlacedSpheres = 0;
         for(int i=0; i<latticeWidth; ++i)
         {
@@ -77,110 +169,15 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
                 {
                     if(numPlacedSpheres<numSpheres)
                     {
-                        sphere.position.x = (i + 0.5)*latticeParameter;
-                        sphere.position.y = (j + 0.5)*latticeParameter;
-                        sphere.position.z = (k + 0.5)*latticeParameter;
-
-                        spheres[numPlacedSpheres] = sphere;
+                        spheres[numPlacedSpheres].position.x = (i + 0.5)*latticeParameter;
+                        spheres[numPlacedSpheres].position.y = (j + 0.5)*latticeParameter;
+                        spheres[numPlacedSpheres].position.z = (k + 0.5)*latticeParameter;
                     }
                     else
                     {
                         break;
                     }
                     ++numPlacedSpheres;
-                }
-            }
-        }
-    }
-
-    if(toggleContinuousPolydisperse)
-    {
-        std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
-        for(int i=0; i<numSpheres; ++i)
-        {
-            spheres[i].radius = randomDoubleMinMaxSize(mersenneTwister);
-        }
-    }
-    if(toggleBinaryMixture)
-    {
-        if(toggleRadius5050)
-        {
-            const int numSmallSpheres = 0.5 * numSpheres;
-            const int numLargeSpheres = numSpheres - numSmallSpheres;
-
-            int numPlacedSmallSpheres = 0;
-            int numPlacedLargeSpheres = 0;
-            int randomRadius;
-
-            for(int i=0; i<numSpheres; ++i)
-            {
-                double randomRadius = randomDouble(mersenneTwister);
-
-                if(randomRadius <= 0.5)
-                {
-                    if(numPlacedSmallSpheres<numSmallSpheres)
-                    {
-                        spheres[i].radius = minRadiusSphere;
-                        ++numPlacedSmallSpheres;
-                    }
-                    else
-                    {
-                        spheres[i].radius = maxRadiusSphere;
-                        ++numPlacedLargeSpheres;
-                    }
-                }
-                else
-                {
-                    if(numPlacedLargeSpheres<numLargeSpheres)
-                    {
-                        spheres[i].radius = maxRadiusSphere;
-                        ++numPlacedLargeSpheres;
-                    }
-                    else
-                    {
-                        spheres[i].radius = minRadiusSphere;
-                        ++numPlacedSmallSpheres;
-                    }
-                }
-            }
-        }
-        if(toggleRadius8020)
-        {
-            const int numSmallSpheres = 0.2 * numSpheres;
-            const int numLargeSpheres = numSpheres - numSmallSpheres;
-
-            int numPlacedSmallSpheres = 0;
-            int numPlacedLargeSpheres = 0;
-            int randomRadius;
-
-            for(int i=0; i<numSpheres; ++i)
-            {
-                double randomRadius = randomDouble(mersenneTwister);
-                if(randomRadius <= 0.2)
-                {
-                    if(numPlacedSmallSpheres<numSmallSpheres)
-                    {
-                        spheres[i].radius = minRadiusSphere;
-                        ++numPlacedSmallSpheres;
-                    }
-                    else
-                    {
-                        spheres[i].radius = maxRadiusSphere;
-                        ++numPlacedLargeSpheres;
-                    }
-                }
-                else
-                {
-                    if(numPlacedLargeSpheres<numLargeSpheres)
-                    {
-                        spheres[i].radius = maxRadiusSphere;
-                        ++numPlacedLargeSpheres;
-                    }
-                    else
-                    {
-                        spheres[i].radius = minRadiusSphere;
-                        ++numPlacedSmallSpheres;
-                    }
                 }
             }
         }
@@ -229,41 +226,38 @@ void System::AttemptTranslation()
 
 void System::AttemptSwap()
 {
-    if(IsChosenWithProbability(swapProbability))
+    // Choose two DIFFERENT particles randomly
+    int randomParticleIndex1 = ChooseRandomParticle();
+    int randomParticleIndex2;
+    do
     {
-        // Choose two DIFFERENT particles randomly
-        int randomParticleIndex1 = ChooseRandomParticle();
-        int randomParticleIndex2;
-        do
-        {
-            randomParticleIndex2 = ChooseRandomParticle();
-        }
-        while(randomParticleIndex1 == randomParticleIndex2);
+        randomParticleIndex2 = ChooseRandomParticle();
+    }
+    while(randomParticleIndex1 == randomParticleIndex2);
 
-        double energy = CalculateEnergy(randomParticleIndex1, spheres[randomParticleIndex1])
-                            +CalculateEnergy(randomParticleIndex2, spheres[randomParticleIndex2]);
+    double energy = CalculateEnergy(randomParticleIndex1, spheres[randomParticleIndex1])
+                        +CalculateEnergy(randomParticleIndex2, spheres[randomParticleIndex2]);
 
-        Sphere newSphere1 = spheres[randomParticleIndex1];
-        newSphere1.radius = spheres[randomParticleIndex2].radius;
+    Sphere newSphere1 = spheres[randomParticleIndex1];
+    newSphere1.radius = spheres[randomParticleIndex2].radius;
 
-        Sphere newSphere2 = spheres[randomParticleIndex2];
-        newSphere2.radius = spheres[randomParticleIndex1].radius;
+    Sphere newSphere2 = spheres[randomParticleIndex2];
+    newSphere2.radius = spheres[randomParticleIndex1].radius;
 
-        double energyNew = CalculateEnergy(randomParticleIndex1, newSphere1)
-                            +CalculateEnergy(randomParticleIndex2, newSphere2);
+    double energyNew = CalculateEnergy(randomParticleIndex1, newSphere1)
+                        +CalculateEnergy(randomParticleIndex2, newSphere2);
 
-        double energyDifference = energyNew - energy;
+    double energyDifference = energyNew - energy;
 
-        double acceptProbability = std::min(1.0,
-                        std::exp(-energyDifference/(boltzmannConstant * temperatureFixed)));
+    double acceptProbability = std::min(1.0,
+                    std::exp(-energyDifference/(boltzmannConstant * temperatureFixed)));
 
-        if(IsChosenWithProbability(acceptProbability))
-        {
-            spheres[randomParticleIndex1] = newSphere1;
-            spheres[randomParticleIndex2] = newSphere2;
+    if(IsChosenWithProbability(acceptProbability))
+    {
+        spheres[randomParticleIndex1] = newSphere1;
+        spheres[randomParticleIndex2] = newSphere2;
 
-            ++acceptedSwaps;
-        }
+        ++acceptedSwaps;
     }
 }
 

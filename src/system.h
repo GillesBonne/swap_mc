@@ -22,7 +22,6 @@ private:
 
     const double temperatureFixed;
 
-    const double swapProbability;
     const double maxTranslationDistanceInMaxParticleSize;
     double maxRadiusSphere;
     double minRadiusSphere;
@@ -71,8 +70,6 @@ public:
     // Constructor
     System(const Config& config, const bool usePreviousStates, std::string previousID);
 
-    int FindLatticeWidth() const;
-    void PrintStates() const;
     std::vector<std::vector<double>> GetStates() const;
 
     void AttemptTranslation();
