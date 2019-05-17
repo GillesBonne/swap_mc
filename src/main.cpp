@@ -73,10 +73,11 @@ int main(int argc, char* argv[])
         Config config(configFile);
 
         std::string data_command = "[ -d data ] || mkdir data";
-        std::system(data_command.c_str());
-
         std::string command = "mkdir data/data" + simulationID;
-        std::system(command.c_str());
+        // To suppress the compiler warning of not using the return value.
+        int _;
+        _ = std::system(data_command.c_str());
+        _ = std::system(command.c_str());
 
         std::string copyConfigFile = "data/data" + simulationID + "/lastConfig.txt";
         CopyFile(configFile, copyConfigFile);
@@ -124,13 +125,17 @@ void MonteCarlo(Config config, bool usePreviousStates,
     int attemptedSwaps = 0;
     int attemptedTranslations = 0;
     int whichPrint = 0;
+    int logScaler = 10;
     for(int it=0; it<numIterations; ++it)
     {
         if(it%skipSamples==0)
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, it);
+        }
 
+        if(it%((int) logScaler/10)==0)
+        {
             ExportItem(it, outputIterationsFile);
             ExportItem(system.GetTotalEnergy(), outputEnergyFile);
             ExportItem(system.GetPressure(), outputPressureFile);
@@ -141,6 +146,10 @@ void MonteCarlo(Config config, bool usePreviousStates,
 
             ExportItem(swapRatio, outputSwapFile);
             ExportItem(translationRatio, outputTranslationFile);
+        }
+        if(it==logScaler)
+        {
+            logScaler *= 10;
         }
 
         if(system.IsChosenWithProbability(swapProbability))

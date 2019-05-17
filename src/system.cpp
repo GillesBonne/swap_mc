@@ -83,7 +83,6 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 
                 int numPlacedSmallSpheres = 0;
                 int numPlacedLargeSpheres = 0;
-                int randomRadius;
 
                 for(int i=0; i<numSpheres; ++i)
                 {
@@ -124,7 +123,6 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 
                 int numPlacedSmallSpheres = 0;
                 int numPlacedLargeSpheres = 0;
-                int randomRadius;
 
                 for(int i=0; i<numSpheres; ++i)
                 {
