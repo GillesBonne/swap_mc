@@ -9,12 +9,9 @@
 #include <string>
 
 #include "timer.h"
-
 #include "system.h"
 #include "config.h"
-
-#include "../data_analysis/src/states.h"
-#include "../data_analysis/src/states.cpp"
+#include "states.h"
 
 System::System(const Config& config, const bool usePreviousStates, std::string previousID)
     :   numSpheres(config.GetNumSpheres()),

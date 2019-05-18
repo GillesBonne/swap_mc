@@ -18,7 +18,8 @@
 #include "export2D.h"
 
 void MonteCarlo(Config config, bool usePreviousStates,
-        std::string simulationID, std::string previousID);
+        std::string simulationID, std::string previousID,
+        int sampleBegin);
 void PrintAcceptanceInfo(const System& system, int numIterations);
 void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
 std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current,
@@ -38,20 +39,28 @@ int main(int argc, char* argv[])
         bool usePreviousStates = false;
         std::string simulationID;
         std::string previousID;
+        int sampleBegin;
         if(argc==1)
         {
             std::cout<<"Overwriting data files without ID."<<std::endl;
+            sampleBegin = 0;
         }
         else if(argc==2)
         {
-            simulationID = argv[1];
-            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
+            std::cout<<"Overwriting data files without ID."<<std::endl;
+            sampleBegin = std::stoi(argv[1]);
         }
         else if(argc==3)
         {
-            simulationID = argv[1];
+            simulationID = argv[2];
             std::cout<<"Simulation ID: "<<simulationID<<std::endl;
-            previousID = argv[2];
+            sampleBegin = std::stoi(argv[1]);
+        }
+        else if(argc==4)
+        {
+            simulationID = argv[2];
+            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
+            previousID = argv[3];
             std::cout<<"Previous ID: "<<previousID<<std::endl;
             if(simulationID == previousID)
             {
@@ -62,15 +71,23 @@ int main(int argc, char* argv[])
             CheckFileExistence(previousConfigFile);
 
             usePreviousStates = true;
+
+            sampleBegin = std::stoi(argv[1]);
         }
         else
         {
             throw std::out_of_range("Wrong number of arguments.");
         }
 
+
         std::string configFile = "config" + simulationID + ".txt";
         CheckFileExistence(configFile);
         Config config(configFile);
+
+        int numSpheres = config.GetNumSpheres();
+
+        std::cout<<"Position sampling starts at iteration: "<<sampleBegin
+            <<"\nTime: "<<sampleBegin/numSpheres<<std::endl;
 
         std::string data_command = "[ -d data ] || mkdir data";
         std::string command = "mkdir data/data" + simulationID;
@@ -82,7 +99,7 @@ int main(int argc, char* argv[])
         std::string copyConfigFile = "data/data" + simulationID + "/lastConfig.txt";
         CopyFile(configFile, copyConfigFile);
 
-        MonteCarlo(config, usePreviousStates, simulationID, previousID);
+        MonteCarlo(config, usePreviousStates, simulationID, previousID, sampleBegin);
     }
     catch(std::out_of_range& e)
     {
@@ -95,7 +112,8 @@ int main(int argc, char* argv[])
 }
 
 void MonteCarlo(Config config, bool usePreviousStates,
-        std::string simulationID, std::string previousID)
+        std::string simulationID, std::string previousID,
+        int sampleBegin)
 {
     System system(config, usePreviousStates, previousID);
 
@@ -128,7 +146,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
     int logScaler = 10;
     for(int it=0; it<numIterations; ++it)
     {
-        if(it%skipSamples==0)
+        if((it >= sampleBegin) && (it%skipSamples==0))
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile, it);
