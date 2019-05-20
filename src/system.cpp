@@ -1,4 +1,3 @@
-// Place #define NDEBUG if asserts should not be evaluated.
 #define NDEBUG
 
 #include <iostream>
@@ -31,11 +30,11 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 {
     Timer timer;
 
-    assert(numSpheres > 1);
-    assert(std::pow(latticeWidth,3) >= numSpheres);
+    double maxSigma = latticeParameter;
+    double minSigma = maxSigma/ratioSizeSphere;
 
-    maxRadiusSphere = latticeParameter/2;
-    minRadiusSphere = maxRadiusSphere/ratioSizeSphere;
+    maxRadiusSphere = 0.5*maxSigma;
+    minRadiusSphere = 0.5*minSigma;
 
     // Max tranlationdistances should be such that translation acceptance is between 30-40%
     maxTranslationDistance = maxRadiusSphere*maxTranslationDistanceInMaxParticleSize;
@@ -65,10 +64,28 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         // Initialize random radii.
         if(toggleContinuousPolydisperse)
         {
-            std::uniform_real_distribution<double> randomDoubleMinMaxSize(minRadiusSphere,maxRadiusSphere);
+            int numBins = 10000;
+            double interval = (double) (maxSigma - minSigma)/numBins;
+
+            std::vector<double> sigmas(numBins);
+            std::vector<double> weights(numBins);
+
+            for(int i=0; i<numBins; ++i)
+            {
+                double sig = minSigma+(i+0.5)*interval;
+                sigmas[i] = sig;
+
+                double weight = 1/pow(sig,3);
+                weights[i] = weight;
+            }
+
+            std::discrete_distribution<> randomSigma(weights.begin(), weights.end());
+
             for(int i=0; i<numSpheres; ++i)
             {
-                spheres[i].radius = randomDoubleMinMaxSize(mersenneTwister);
+                int index = randomSigma(mersenneTwister);
+                double radius = 0.5*sigmas[index];
+                spheres[i].radius = radius;
             }
         }
         if(toggleBinaryMixture)

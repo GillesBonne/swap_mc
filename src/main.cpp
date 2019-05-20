@@ -1,4 +1,3 @@
-// Place #define NDEBUG if asserts should not be evaluated.
 #define NDEBUG
 
 #include <iostream>
@@ -202,17 +201,17 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 std::cout<<std::setw(3)<<progress<<"%";
                 if(secondsLeft > 3600 * numProgressUpdatesToDo)
                 {
-                    std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/3600<<" hours"
+                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft/3600<<" hours"
                         <<"\t at "<<dateTime<<std::endl;
                 }
                 else if(secondsLeft > 60 * numProgressUpdatesToDo)
                 {
-                    std::cout<<"\t ETA: "<< std::setw(12)<<secondsLeft/60<<" min"
+                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft/60<<" min"
                         <<"\t at "<<dateTime<<std::endl;
                 }
                 else
                 {
-                    std::cout<<" ETA: "<< std::setw(10)<<secondsLeft<<"s"
+                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft<<"s"
                         <<" at "<<dateTime<<std::endl;
                 }
                 std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)

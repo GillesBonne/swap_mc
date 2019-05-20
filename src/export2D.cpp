@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include <fstream>
 #include <vector>
 #include <string>

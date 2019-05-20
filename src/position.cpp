@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include "position.h"
 
 bool Position::operator==(const Position &right) const

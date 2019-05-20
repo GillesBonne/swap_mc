@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include "sphere.h"
 
 bool Sphere::operator==(const Sphere &right) const

@@ -59,7 +59,7 @@ for i,T in enumerate(temperatures):
     acceptance = 0
     for iteration in range(num_averages):
         print('num times:'+str(iteration))        
-        subprocess.call(["bin/runner"])
+        subprocess.call(["bin/runner 0"])
         acceptance += read_acceptance()
     translation_acceptances[i] = acceptance/num_averages
 
@@ -70,5 +70,5 @@ plt.ylabel('Translation acceptance')
 plt.tick_params(which="both", direction="in")
 plt.xlim(left=0, right=1)
 plt.ylim(bottom=0)
-fig.savefig("python/visuals/temperature_acceptance.pdf", bbox_inches='tight')
+fig.savefig("simulations_automated/visuals/temperature_acceptance.pdf", bbox_inches='tight')
 plt.show()

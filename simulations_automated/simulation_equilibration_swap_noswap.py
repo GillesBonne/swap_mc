@@ -49,7 +49,7 @@ config.change_config_to(num_iterations,
 
 num_averages = 1
 
-subprocess.call(["bin/runner"])
+subprocess.call(["bin/runner 0"])
 iterations = read_file(path = "data/data/iterations.txt", is_integer=True)
 num_samples = len(iterations)
 
@@ -96,7 +96,7 @@ plt.xlabel("Time")
 plt.ylabel("Energy")
 plt.tick_params(which="both", direction="in")
 plt.ylim(bottom=0)
-fig.savefig("python/visuals/swap_energy_equilibration.pdf", bbox_inches='tight')
+fig.savefig("simulations_automated/visuals/swap_energy_equilibration.pdf", bbox_inches='tight')
 plt.show()
 
 fig = plt.figure()
@@ -108,5 +108,5 @@ plt.xlabel("Time")
 plt.ylabel("Pressure")
 plt.tick_params(which="both", direction="in")
 plt.ylim(bottom=0)
-fig.savefig("python/visuals/swap_pressure_equilibration.pdf", bbox_inches='tight')
+fig.savefig("simulations_automated/visuals/swap_pressure_equilibration.pdf", bbox_inches='tight')
 plt.show()

@@ -50,8 +50,8 @@ private:
      * WCA & binary & 5050.
      * WCA & binary & 8020 & KobAnderson.
      */
-    const bool toggleWCA = true;
-    const bool toggleSRPP = false;
+    const bool toggleWCA = false;
+    const bool toggleSRPP = true;
 
     const bool toggleContinuousPolydisperse = true;
     const bool toggleBinaryMixture = false;
@@ -64,7 +64,7 @@ private:
     const bool toggleKobAnderson = false;
 
     // Scale the degree of additivity of the radii.
-    const bool toggleChangeAdditivity = false;
+    const bool toggleChangeAdditivity = true;
 
 public:
     // Constructor
