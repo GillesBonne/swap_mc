@@ -18,7 +18,7 @@ def read_file(path, is_integer):
         return file_content
 
 def change_swap_probability_to(p_swap):
-    with open("config.txt","r") as config_file:
+    with open("configBinWCAT03.txt","r") as config_file:
         with open("new_config.txt","w") as new_config_file:
             for line_individual in config_file:
                 line = line_individual.replace(" ", "")
@@ -27,16 +27,16 @@ def change_swap_probability_to(p_swap):
                     new_config_file.write("swapProbability = "+str(p_swap)+"\n")
                 else:
                     new_config_file.write(line_individual)
-            os.rename("new_config.txt","config.txt")
+            os.rename("new_config.txt","configBinWCAT03.txt")
 
-num_iterations                                  = 50001
+num_iterations                                  = 1000001
 skip_samples                                    = 1000
 num_spheres                                     = 1000
 ratio_size_sphere                               = 1.2
 num_density                                     = 1.0
-temperature_fixed                               = 0.15
-max_translation_distance_in_max_particle_size   = 0.15
-swap_probability                                = 0.1
+temperature_fixed                               = 0.05
+max_translation_distance_in_max_particle_size   = 1.0
+swap_probability                                = 0.2
 
 config.change_config_to(num_iterations,
                     skip_samples,
@@ -47,20 +47,20 @@ config.change_config_to(num_iterations,
                     max_translation_distance_in_max_particle_size,
                     swap_probability)
 
-num_averages = 1
+num_averages = 3
 
-subprocess.call(["bin/runner 0"])
-iterations = read_file(path = "data/data/iterations.txt", is_integer=True)
+subprocess.call(["bin/runner", "0", "BinWCAT03", "BinWCAT1"])
+iterations = read_file(path = "data/dataBinWCAT03/iterations.txt", is_integer=True)
 num_samples = len(iterations)
 
-with open("data/data/lastConfig.txt","r") as config_file:
+with open("data/dataBinWCAT03/lastConfig.txt","r") as config_file:
     for line_individual in config_file:
         line = line_individual.replace(" ", "")
         line_split = line.split("=")
         if line_split[0] == "numSpheres":
             num_spheres = int(line_split[1])
 
-swap_probabilities = np.array([0.0, 0.1, 0.2])
+swap_probabilities = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 num_swap_probabilities = swap_probabilities.size
 
 energy = np.zeros((num_samples,num_swap_probabilities))
@@ -71,12 +71,12 @@ for i,p in enumerate(swap_probabilities):
     change_swap_probability_to(p)
     for iteration in range(num_averages):
         print("num times:"+str(iteration))
-        subprocess.call(["bin/runner"])
+        subprocess.call(["bin/runner", "0", "BinWCAT03", "BinWCAT1"])
 
-        E = read_file(path = "data/data/energy.txt", is_integer=False)
+        E = read_file(path = "data/dataBinWCAT03/energy.txt", is_integer=False)
         for j, e in enumerate(E):
             energy[j][i] += e
-        P = read_file(path = "data/data/pressure.txt", is_integer=False)
+        P = read_file(path = "data/dataBinWCAT03/pressure.txt", is_integer=False)
         for j, p in enumerate(P):
             pressure[j][i] += p
 

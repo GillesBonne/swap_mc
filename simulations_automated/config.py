@@ -10,7 +10,7 @@ def change_config_to(num_iterations,
                      temperature_fixed,
                      max_translation_distance_in_max_particle_size,
                      swap_probability):
-    with open("config.txt","r") as config_file:
+    with open("configBinWCAT03.txt","r") as config_file:
         with open("new_config.txt","w") as new_config_file:
             for line_individual in config_file:
                 line = line_individual.replace(" ", "")
@@ -33,4 +33,4 @@ def change_config_to(num_iterations,
                     new_config_file.write("swapProbability = "+str(swap_probability)+"\n")
                 else:
                     new_config_file.write(line_individual)
-            os.rename("new_config.txt","config.txt")
+            os.rename("new_config.txt","configBinWCAT03.txt")
