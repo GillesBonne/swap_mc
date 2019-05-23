@@ -6,7 +6,7 @@ if(len(sys.argv)==1):
     id = ""
 elif(len(sys.argv)==2):
     id = sys.argv[1]
-    
+
 config_path = "data/data" + id + "/lastConfig.txt"
 
 with open(config_path,"r") as config_file:

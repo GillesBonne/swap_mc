@@ -10,17 +10,17 @@ private:
     const std::string configFile;
 
     int numSpheres;
-    double ratioSizeSphere;
+//    double ratioSizeSphere;
 
     double numDensity;
-    double volumeBox;
-    double lengthBox;
-    int latticeWidth;
-    double latticeParameter;
+//    double volumeBox;
+//    double lengthBox;
+//    int latticeWidth;
+//    double latticeParameter;
 
     double temperatureFixed;
 
-    double maxTranslationDistanceInMaxParticleSize;
+    double maxTranslationDistanceInLengthUnits;
 
     double swapProbability;
 
@@ -30,20 +30,20 @@ public:
     // Constructor
     Config(const std::string _configFile);
 
-    int FindLatticeWidth() const;
+//    int FindLatticeWidth() const;
 
     // Accessor functions
     int GetNumSpheres() const;
     double GetRatioSizeSphere() const;
 
-    double GetVolumeBox() const;
-    double GetLengthBox() const;
-    int GetLatticeWidth() const;
-    double GetLatticeParameter() const;
+//    double GetVolumeBox() const;
+//    double GetLengthBox() const;
+//    int GetLatticeWidth() const;
+//    double GetLatticeParameter() const;
 
     double GetTemperatureFixed() const;
 
-    double GetMaxTranslationDistanceInMaxParticleSize() const;
+    double GetMaxTranslationDistanceInLengthUnits() const;
 
     double GetSwapProbability() const;
 

@@ -6,7 +6,7 @@ if(len(sys.argv)==1):
     id = ""
 elif(len(sys.argv)==2):
     id = sys.argv[1]
-    
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -20,7 +20,7 @@ with open(config_path,"r") as config_file:
         line_split = line.split("=")
         if line_split[0] == "numSpheres":
             num_spheres = int(line_split[1])
-            
+
 radii = np.zeros(num_spheres)
 
 iteration_on_line = False
@@ -37,7 +37,9 @@ with open(input_path,"r") as in_file:
         else:
             line_split = line.split(",")
             radii[i-2] = float(line_split[3])
-  
+
+print("Average radius: "+str(sum(radii)/len(radii)))
+
 visual_size_path = "visuals/visuals" + id + "/sizeHistogram.pdf"
 fig = plt.figure()
 plt.hist(radii)

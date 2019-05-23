@@ -13,21 +13,18 @@ class System
 private:
     // Member variables
     const int numSpheres;
-    const double ratioSizeSphere;
-
+    const double temperatureFixed;
+    const double maxTranslationDistanceInLengthUnits;
+    const double numDensity;
     const double volumeBox;
     const double lengthBox;
-    const int latticeWidth;
-    const double latticeParameter;
+//    const int latticeWidth;
+//    const double latticeParameter;
 
-    const double temperatureFixed;
-
-    const double maxTranslationDistanceInMaxParticleSize;
+    double ratioSizeSphere;
     double maxRadiusSphere;
     double minRadiusSphere;
     double maxTranslationDistance;
-
-    const double numDensity;
 
     const double epsilonConstant = 1;
     const double boltzmannConstant = 1;

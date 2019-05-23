@@ -15,14 +15,11 @@
 System::System(const Config& config, const bool usePreviousStates, std::string previousID)
     :   numSpheres(config.GetNumSpheres()),
         spheres(numSpheres),
-        ratioSizeSphere(config.GetRatioSizeSphere()),
-        volumeBox(config.GetVolumeBox()),
-        lengthBox(config.GetLengthBox()),
-        latticeWidth(config.GetLatticeWidth()),
-        latticeParameter(config.GetLatticeParameter()),
         temperatureFixed(config.GetTemperatureFixed()),
-        maxTranslationDistanceInMaxParticleSize(config.GetMaxTranslationDistanceInMaxParticleSize()),
+        maxTranslationDistanceInLengthUnits(config.GetMaxTranslationDistanceInLengthUnits()),
         numDensity(config.GetNumDensity()),
+        volumeBox(numSpheres/numDensity),
+        lengthBox(cbrt(volumeBox)),
         mersenneTwister((std::random_device())()),
         randomDouble(0,1),
         randomPosNegDouble(-1,1),
@@ -30,14 +27,40 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 {
     Timer timer;
 
-    double maxSigma = latticeParameter;
-    double minSigma = maxSigma/ratioSizeSphere;
+    // Get the number of spheres along one dimension.
+    int numSpheres1D;
+    for(int i=2; i<=numSpheres; ++i)
+    {
+        if(i*i*i == numSpheres)
+        {
+            numSpheres1D = i;
+            break;
+        }
+    }
 
-    maxRadiusSphere = 0.5*maxSigma;
-    minRadiusSphere = 0.5*minSigma;
+    double lengthUnit = lengthBox/numSpheres1D;
 
-    // Max tranlationdistances should be such that translation acceptance is between 30-40%
-    maxTranslationDistance = maxRadiusSphere*maxTranslationDistanceInMaxParticleSize;
+    double ratioSizeSphere;
+    double sigmaMax;
+    double sigmaMin;
+    if(toggleContinuousPolydisperse)
+    {
+        // Average sigma should be 1.
+        ratioSizeSphere = 2.219;
+        sigmaMax = 1.6095;
+        sigmaMin = 0.725327;
+    }
+    if(toggleBinaryMixture)
+    {
+        ratioSizeSphere = 2.219;
+        sigmaMax = lengthUnit;
+        sigmaMin = sigmaMax/ratioSizeSphere;
+    }
+
+    maxRadiusSphere = 0.5*sigmaMax;
+    minRadiusSphere = 0.5*sigmaMin;
+
+    maxTranslationDistance = maxTranslationDistanceInLengthUnits * lengthUnit;
 
     if(usePreviousStates)
     {
@@ -65,14 +88,14 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         if(toggleContinuousPolydisperse)
         {
             int numBins = 10000;
-            double interval = (double) (maxSigma - minSigma)/numBins;
+            double interval = (double) (sigmaMax - sigmaMin)/numBins;
 
             std::vector<double> sigmas(numBins);
             std::vector<double> weights(numBins);
 
             for(int i=0; i<numBins; ++i)
             {
-                double sig = minSigma+(i+0.5)*interval;
+                double sig = sigmaMin+(i+0.5)*interval;
                 sigmas[i] = sig;
 
                 double weight = 1/pow(sig,3);
@@ -173,17 +196,17 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 
         // Initialize positions.
         int numPlacedSpheres = 0;
-        for(int i=0; i<latticeWidth; ++i)
+        for(int i=0; i<numSpheres1D; ++i)
         {
-            for(int j=0; j<latticeWidth; ++j)
+            for(int j=0; j<numSpheres1D; ++j)
             {
-                for(int k=0; k<latticeWidth; ++k)
+                for(int k=0; k<numSpheres1D; ++k)
                 {
                     if(numPlacedSpheres<numSpheres)
                     {
-                        spheres[numPlacedSpheres].position.x = (i + 0.5)*latticeParameter;
-                        spheres[numPlacedSpheres].position.y = (j + 0.5)*latticeParameter;
-                        spheres[numPlacedSpheres].position.z = (k + 0.5)*latticeParameter;
+                        spheres[numPlacedSpheres].position.x = (i + 0.5)*lengthUnit;
+                        spheres[numPlacedSpheres].position.y = (j + 0.5)*lengthUnit;
+                        spheres[numPlacedSpheres].position.z = (k + 0.5)*lengthUnit;
                     }
                     else
                     {
@@ -356,12 +379,12 @@ double System::PotentialSRPP(const double sigmaSummedRadius, const double distan
     }
     else
     {
-        const int pairPotentialParameter = 12;
+        const int n = 12;
         const double c0 = -1.92415;
         const double c2 = 2.11106;
         const double c4 = -0.591097;
 
-        potential = pow((sigmaSummedRadius/distanceBetweenSpheres),pairPotentialParameter)
+        potential = pow((sigmaSummedRadius/distanceBetweenSpheres),n)
                         + c4 * pow((distanceBetweenSpheres/sigmaSummedRadius),4)
                         + c2 * pow((distanceBetweenSpheres/sigmaSummedRadius),2)
                         + c0;
@@ -589,13 +612,13 @@ double System::ForceSRPP(double difference, double sqDistance, double sigmaSumme
     }
     else
     {
-        const int pairPotentialParameter = 12;
+        const int n = 12;
         const double c2 = 2.11106;
         const double c4 = -0.591097;
 
         force = - difference * (4*c4*sqDistance/(pow(sigmaSummedRadius,4))
                                 + 2*c2/(sigmaSummedRadius*sigmaSummedRadius)
-                                - pairPotentialParameter/(sqDistance) * pow((sigmaSummedRadius/sqrt(sqDistance)),pairPotentialParameter));
+                                - n/(sqDistance) * pow((sigmaSummedRadius/sqrt(sqDistance)),n));
     }
     return force;
 }

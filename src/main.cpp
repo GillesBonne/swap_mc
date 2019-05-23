@@ -85,8 +85,9 @@ int main(int argc, char* argv[])
 
         int numSpheres = config.GetNumSpheres();
 
-        std::cout<<"Position sampling starts at iteration: "<<sampleBegin
-            <<"\nTime: "<<sampleBegin/numSpheres<<std::endl;
+        std::cout<<"\nPosition sampling starts at"
+            <<"\niteration/time: "<<sampleBegin<<"/"<<sampleBegin/numSpheres
+            <<"\n"<<std::endl;
 
         std::string data_command = "[ -d data ] || mkdir data";
         std::string command = "mkdir data/data" + simulationID;

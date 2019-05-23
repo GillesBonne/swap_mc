@@ -18,7 +18,7 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
 
     std::string temperatureFixedString;
 
-    std::string maxTranslationDistanceInMaxParticleSizeString;
+    std::string maxTranslationDistanceInLengthUnitsString;
 
     std::string swapProbabilityString;
 
@@ -42,10 +42,6 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
             {
                 numSpheresString = value;
             }
-            else if(name=="ratioSizeSphere")
-            {
-                ratioSizeSphereString = value;
-            }
             else if(name=="numDensity")
             {
                 numDensityString = value;
@@ -54,9 +50,9 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
             {
                 temperatureFixedString = value;
             }
-            else if(name=="maxTranslationDistanceInMaxParticleSize")
+            else if(name=="maxTranslationDistanceInLengthUnits")
             {
-                maxTranslationDistanceInMaxParticleSizeString = value;
+                maxTranslationDistanceInLengthUnitsString = value;
             }
             else if(name=="swapProbability")
             {
@@ -91,64 +87,25 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
         throw std::out_of_range("Number of spheres is not a power of 3.");
     }
 
-    ratioSizeSphere = std::stod(ratioSizeSphereString);
     numDensity = std::stod(numDensityString);
     temperatureFixed = std::stod(temperatureFixedString);
-    maxTranslationDistanceInMaxParticleSize = std::stod(maxTranslationDistanceInMaxParticleSizeString);
+    maxTranslationDistanceInLengthUnits = std::stod(maxTranslationDistanceInLengthUnitsString);
     swapProbability = std::stod(swapProbabilityString);
-
-    volumeBox = numSpheres/numDensity;
-    lengthBox = cbrt(volumeBox);
-
-    latticeWidth = FindLatticeWidth();
-    latticeParameter = lengthBox / latticeWidth;
-
     numIterations = std::stoi(numIterationsString);
     skipSamples = std::stoi(skipSamplesString);
-}
-
-int Config::FindLatticeWidth() const
-{
-    for(int i=2; i<=numSpheres; ++i)
-    {
-        if(i*i*i >= numSpheres)
-        {
-            return i;
-        }
-    }
 }
 
 int Config::GetNumSpheres() const
 {
     return numSpheres;
 }
-double Config::GetRatioSizeSphere() const
-{
-    return ratioSizeSphere;
-}
-double Config::GetVolumeBox() const
-{
-    return volumeBox;
-}
-double Config::GetLengthBox() const
-{
-    return lengthBox;
-}
-int Config::GetLatticeWidth() const
-{
-    return latticeWidth;
-}
-double Config::GetLatticeParameter() const
-{
-    return latticeParameter;
-}
 double Config::GetTemperatureFixed() const
 {
     return temperatureFixed;
 }
-double Config::GetMaxTranslationDistanceInMaxParticleSize() const
+double Config::GetMaxTranslationDistanceInLengthUnits() const
 {
-    return maxTranslationDistanceInMaxParticleSize;
+    return maxTranslationDistanceInLengthUnits;
 }
 double Config::GetSwapProbability() const
 {
