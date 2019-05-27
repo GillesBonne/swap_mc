@@ -91,7 +91,7 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     temperatureFixed = std::stod(temperatureFixedString);
     maxTranslationDistanceInLengthUnits = std::stod(maxTranslationDistanceInLengthUnitsString);
     swapProbability = std::stod(swapProbabilityString);
-    numIterations = std::stoi(numIterationsString);
+    numIterations = std::stoll(numIterationsString);
     skipSamples = std::stoi(skipSamplesString);
 }
 
@@ -111,7 +111,7 @@ double Config::GetSwapProbability() const
 {
     return swapProbability;
 }
-int Config::GetNumIterations() const
+long long int Config::GetNumIterations() const
 {
     return numIterations;
 }

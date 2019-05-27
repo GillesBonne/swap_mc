@@ -13,7 +13,7 @@ void ClearContents(const std::string& filePath)
 
 void Export2D(const std::vector<std::vector<double>> &vector2D,
         const std::string& filePath,
-        const int iteration)
+        const long long int iteration)
 {
     int vectorSize = vector2D[0].size();
     std::ofstream outFile(filePath, std::ios_base::app);
@@ -35,7 +35,7 @@ void Export2D(const std::vector<std::vector<double>> &vector2D,
     }
 }
 
-void ExportItem(const int item, std::string& filePath)
+void ExportItem(const long long int item, std::string& filePath)
 {
     std::ofstream outFile(filePath, std::ios_base::app);
     outFile << item;

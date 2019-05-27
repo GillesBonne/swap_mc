@@ -117,7 +117,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
 {
     System system(config, usePreviousStates, previousID);
 
-    const int numIterations = config.GetNumIterations();
+    const long long int numIterations = config.GetNumIterations();
     const int skipSamples = config.GetSkipSamples();
     const double swapProbability = config.GetSwapProbability();
 
@@ -144,7 +144,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
     int attemptedTranslations = 0;
     int whichPrint = 0;
     int logScaler = 10;
-    for(int it=0; it<numIterations; ++it)
+    for(long long int it=0; it<numIterations; ++it)
     {
         if((it >= sampleBegin) && (it%skipSamples==0))
         {
@@ -183,7 +183,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
 
         // Printing progress and ETA.
         int numProgressUpdates = 10;
-        if(it%((int) (numIterations-1)/numProgressUpdates)==0)
+        if(it%((long long int) (numIterations-1)/numProgressUpdates)==0)
         {
             if(it!=0)
             {
@@ -193,7 +193,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 int numProgressUpdatesToDo = numProgressUpdates - whichPrint;
                 auto estimatedTimeOfCompletion = timeSinceStart/whichPrint*numProgressUpdatesToDo;
 
-                int progress = (int) 100*it/(numIterations-1);
+                long long int progress = (long long int) 100*it/(numIterations-1);
 
                 auto dateTime = GetCurrentTime(current, 0);
 

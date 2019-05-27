@@ -18,8 +18,6 @@ private:
     const double numDensity;
     const double volumeBox;
     const double lengthBox;
-//    const int latticeWidth;
-//    const double latticeParameter;
 
     double ratioSizeSphere;
     double maxRadiusSphere;

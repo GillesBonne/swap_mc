@@ -24,7 +24,7 @@ private:
 
     double swapProbability;
 
-    int numIterations;
+    long long int numIterations;
     int skipSamples;
 public:
     // Constructor
@@ -47,7 +47,7 @@ public:
 
     double GetSwapProbability() const;
 
-    int GetNumIterations() const;
+    long long int GetNumIterations() const;
 
     double GetNumDensity() const;
 

@@ -16,7 +16,7 @@ with open(config_path,"r") as config_file:
         if line_split[0] == "numSpheres":
             num_spheres = int(line_split[1])
 
-skip = 100
+skip = 10
 
 input_path = "data/data" + id + "/outputStates.txt"
 output_path = "visuals/visuals" + id + "/ovitoStates.txt"
