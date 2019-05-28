@@ -113,22 +113,24 @@ fig = plt.figure()
 for i, p_swap in enumerate(swap_probabilities):
     plt.semilogx(time, energy[:,i], label=("Swap probability: "+str(p_swap)))
 
+visual_path = "simulations_automated/visuals/swap_energy_equilibration"
 plt.legend(loc="best")
 plt.xlabel("Time")
 plt.ylabel("Energy")
 plt.tick_params(which="both", direction="in")
-#plt.ylim(bottom=0)
-fig.savefig("simulations_automated/visuals/swap_energy_equilibration.pdf", bbox_inches='tight')
+fig.savefig(visual_path+".pdf", bbox_inches='tight')
+fig.savefig(visual_path+".svg", bbox_inches='tight')
 plt.show()
 
 fig = plt.figure()
 for i, p_swap in enumerate(swap_probabilities):
     plt.semilogx(time, pressure[:,i], label=("Swap probability: "+str(p_swap)))
 
+visual_path = "simulations_automated/visuals/swap_pressure_equilibration"
 plt.legend(loc="best")
 plt.xlabel("Time")
 plt.ylabel("Pressure")
 plt.tick_params(which="both", direction="in")
-#plt.ylim(bottom=0)
-fig.savefig("simulations_automated/visuals/swap_pressure_equilibration.pdf", bbox_inches='tight')
+fig.savefig(visual_path+".pdf", bbox_inches='tight')
+fig.savefig(visual_path+".svg", bbox_inches='tight')
 plt.show()

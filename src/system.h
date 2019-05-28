@@ -48,7 +48,8 @@ private:
     const bool toggleWCA = false;
     const bool toggleSRPP = true;
 
-    const bool toggleContinuousPolydisperse = true;
+    const bool toggleContinuousPolydisperse = false;
+    const bool togglePolydisperse = true;
     const bool toggleBinaryMixture = false;
 
     // If binary then size ratio large:small = 50:50 or 80:20

@@ -43,22 +43,27 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     double ratioSizeSphere;
     double sigmaMax;
     double sigmaMin;
+
     if(toggleContinuousPolydisperse)
     {
         // Average sigma should be 1.
         ratioSizeSphere = 2.219;
         sigmaMax = 1.6095;
         sigmaMin = 0.725327;
+
+        maxRadiusSphere = 0.5*sigmaMax;
+        minRadiusSphere = 0.5*sigmaMin;
     }
     if(toggleBinaryMixture)
     {
         ratioSizeSphere = 2.219;
         sigmaMax = lengthUnit;
         sigmaMin = sigmaMax/ratioSizeSphere;
+
+        maxRadiusSphere = 0.5*sigmaMax;
+        minRadiusSphere = 0.5*sigmaMin;
     }
 
-    maxRadiusSphere = 0.5*sigmaMax;
-    minRadiusSphere = 0.5*sigmaMin;
 
     maxTranslationDistance = maxTranslationDistanceInLengthUnits * lengthUnit;
 
@@ -100,6 +105,37 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
 
                 double weight = 1/pow(sig,3);
                 weights[i] = weight;
+            }
+
+            std::discrete_distribution<> randomSigma(weights.begin(), weights.end());
+
+            for(int i=0; i<numSpheres; ++i)
+            {
+                int index = randomSigma(mersenneTwister);
+                double radius = 0.5*sigmas[index];
+                spheres[i].radius = radius;
+            }
+        }
+        if(togglePolydisperse)
+        {
+            int numSpecies = 3;
+            int n = numSpecies - 1;
+
+            double sigmaMax = 1.85908;
+            double sigmaMin = 0.837803;
+
+            maxRadiusSphere = 0.5*sigmaMax;
+            minRadiusSphere = 0.5*sigmaMin;
+
+            double interval = (sigmaMax - sigmaMin)/n;
+
+            std::vector<double> sigmas(numSpecies);
+            std::vector<double> weights(numSpecies);
+
+            for(int i=0; i<numSpecies; ++i)
+            {
+                sigmas[i] = i*interval + sigmaMin;
+                weights[i] = 0.441701 / (pow((0.837803+0.510641*i),3));
             }
 
             std::discrete_distribution<> randomSigma(weights.begin(), weights.end());
