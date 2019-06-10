@@ -118,11 +118,87 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         }
         if(togglePolydisperse)
         {
-            int numSpecies = 80;
+            int numSpecies = 2;
             int n = numSpecies - 1;
 
-            double sigmaMax = 1.61633;
-            double sigmaMin = 0.728405;
+            double sigmaMax;
+            double sigmaMin;
+
+            // Function constants.
+            double a;
+            double b;
+            double c;
+
+            // Values specific for the number of species and ratio=2.219.
+            // Can be calculated using discrete_polydisperse.nb.
+            if(numSpecies==2)
+            {
+                sigmaMax =  2.01323;
+                sigmaMin =  0.907267;
+                a =         0.684184;
+                b =         sigmaMin;
+                c =         1.10596;
+            }
+            else if(numSpecies==3)
+            {
+                sigmaMax =  1.85908;
+                sigmaMin =  0.837803;
+                a =         0.441701;
+                b =         sigmaMin;
+                c =         0.510641;
+            }
+            else if(numSpecies==5)
+            {
+                sigmaMax =  1.78458;
+                sigmaMin =  0.804227;
+                a =         0.321294;
+                b =         sigmaMin;
+                c =         0.326784;
+            }
+            else if(numSpecies==7)
+            {
+                sigmaMax =  1.69954;
+                sigmaMin =  0.765902;
+                a =         0.175843;
+                b =         sigmaMin;
+                c =         0.155606;
+            }
+            else if(numSpecies==10)
+            {
+                sigmaMax =  1.66969;
+                sigmaMin =  0.752453;
+                a =         0.121035;
+                b =         sigmaMin;
+                c =         0.101916;
+            }
+            else if(numSpecies==20)
+            {
+                sigmaMax =  1.63799;
+                sigmaMin =  0.738164;
+                a =         0.0593967;
+                b =         sigmaMin;
+                c =         0.047359;
+            }
+            else if(numSpecies==40)
+            {
+                sigmaMax =  1.62335;
+                sigmaMin =  0.731569;
+                a =         0.0294358;
+                b =         sigmaMin;
+                c =         0.0228662;
+            }
+            else if(numSpecies==80)
+            {
+                sigmaMax =  1.61633;
+                sigmaMin =  0.728405;
+                a =         0.0146545;
+                b =         sigmaMin;
+                c =         0.0112396;
+            }
+            else
+            {
+                throw std::out_of_range("Parameters of the set number of species are not defined.");
+            }
 
             maxRadiusSphere = 0.5*sigmaMax;
             minRadiusSphere = 0.5*sigmaMin;
@@ -135,7 +211,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
             for(int i=0; i<numSpecies; ++i)
             {
                 sigmas[i] = i*interval + sigmaMin;
-                weights[i] = 0.0146545/ (pow((0.728405+0.0112396*i),3));
+                weights[i] = a/(pow((b+c*i),3));
             }
 
             std::discrete_distribution<> randomSigma(weights.begin(), weights.end());
@@ -304,7 +380,9 @@ void System::AttemptSwap()
     {
         randomParticleIndex2 = ChooseRandomParticle();
     }
-    while(randomParticleIndex1 == randomParticleIndex2);
+    while((randomParticleIndex1 == randomParticleIndex2)
+            ||
+            (spheres[randomParticleIndex1].radius==spheres[randomParticleIndex2].radius));
 
     double energy = CalculateEnergy(randomParticleIndex1, spheres[randomParticleIndex1])
                         +CalculateEnergy(randomParticleIndex2, spheres[randomParticleIndex2]);

@@ -1,4 +1,4 @@
-numIterations = 2000001
+numIterations = 1000001
 skipSamples = 1000
 numSpheres = 1000
 ratioSizeSphere = 2.219
