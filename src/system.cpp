@@ -20,7 +20,8 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         numDensity(config.GetNumDensity()),
         volumeBox(numSpheres/numDensity),
         lengthBox(cbrt(volumeBox)),
-        mersenneTwister((std::random_device())()),
+        //mersenneTwister((std::random_device())()),
+        mersenneTwister(42),
         randomDouble(0,1),
         randomPosNegDouble(-1,1),
         randomParticle(0,numSpheres-1)
@@ -47,7 +48,6 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     if(toggleContinuousPolydisperse)
     {
         // Average sigma should be 1.
-        ratioSizeSphere = 2.219;
         sigmaMax = 1.6095;
         sigmaMin = 0.725327;
 
@@ -118,11 +118,11 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         }
         if(togglePolydisperse)
         {
-            int numSpecies = 3;
+            int numSpecies = 80;
             int n = numSpecies - 1;
 
-            double sigmaMax = 1.85908;
-            double sigmaMin = 0.837803;
+            double sigmaMax = 1.61633;
+            double sigmaMin = 0.728405;
 
             maxRadiusSphere = 0.5*sigmaMax;
             minRadiusSphere = 0.5*sigmaMin;
@@ -135,7 +135,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
             for(int i=0; i<numSpecies; ++i)
             {
                 sigmas[i] = i*interval + sigmaMin;
-                weights[i] = 0.441701 / (pow((0.837803+0.510641*i),3));
+                weights[i] = 0.0146545/ (pow((0.728405+0.0112396*i),3));
             }
 
             std::discrete_distribution<> randomSigma(weights.begin(), weights.end());

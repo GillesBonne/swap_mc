@@ -38,11 +38,19 @@ with open(input_path,"r") as in_file:
             line_split = line.split(",")
             radii[i-2] = float(line_split[3])
 
+unique, counts = np.unique(radii, return_counts=True)
+if len(unique)<25:
+    np.set_printoptions(suppress=True)
+    print(np.asarray((unique, counts)).T)
+    num_bins = len(unique)
+else:
+    num_bins = "auto"
+
 print("Average radius: "+str(sum(radii)/len(radii)))
 
 visual_size_path = "visuals/visuals" + id + "/sizeHistogram.pdf"
 fig = plt.figure()
-plt.hist(radii)
+plt.hist(radii, bins=num_bins)
 plt.xlabel('Radius')
 plt.ylabel('Number of spheres')
 plt.tick_params(which="both", direction="in")

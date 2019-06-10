@@ -143,7 +143,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
     int attemptedSwaps = 0;
     int attemptedTranslations = 0;
     int whichPrint = 0;
-    int logScaler = 10;
+    long long int logScaler = 10;
     for(long long int it=0; it<numIterations; ++it)
     {
         if((it >= sampleBegin) && (it%skipSamples==0))
@@ -152,7 +152,7 @@ void MonteCarlo(Config config, bool usePreviousStates,
             Export2D(exportedStates, outputStatesFile, it);
         }
 
-        if(it%((int) logScaler/10)==0)
+        if(it%((long long int) logScaler/10)==0)
         {
             ExportItem(it, outputIterationsFile);
             ExportItem(system.GetTotalEnergy(), outputEnergyFile);
