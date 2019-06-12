@@ -45,7 +45,7 @@ if len(unique)<25:
     num_bins = len(unique)
 else:
     num_bins = "auto"
-
+print(len(unique))
 print("Average radius: "+str(sum(radii)/len(radii)))
 
 visual_size_path = "visuals/visuals" + id + "/sizeHistogram.pdf"

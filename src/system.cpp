@@ -118,7 +118,7 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         }
         if(togglePolydisperse)
         {
-            int numSpecies = 2;
+            int numSpecies = 80;
             int n = numSpecies - 1;
 
             double sigmaMax;
