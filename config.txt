@@ -3,6 +3,6 @@ skipSamples = 1000
 numSpheres = 1000
 ratioSizeSphere = 2.219
 numDensity = 1
-temperatureFixed = 0.5
+temperatureFixed = 1.0
 maxTranslationDistanceInLengthUnits = 0.1
 swapProbability = 0.2
