@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 config_path = "data/data" + id + "/lastConfig.txt"
-input_path = "data/data" + id + "/outputStates.txt"
+input_path = "data/data" + id + "/outputStates10000.txt"
 output_path = "data/data" + id + "/stateConfigs.xyz"
 
 with open(config_path,"r") as config_file:
@@ -44,7 +44,8 @@ if len(unique)<25:
     print(np.asarray((unique, counts)).T)
     num_bins = len(unique)
 else:
-    num_bins = "auto"
+    #num_bins = "auto"
+    num_bins = 10
 print(len(unique))
 print("Average radius: "+str(sum(radii)/len(radii)))
 

@@ -83,11 +83,7 @@ int main(int argc, char* argv[])
         CheckFileExistence(configFile);
         Config config(configFile);
 
-        int numSpheres = config.GetNumSpheres();
-
-        std::cout<<"\nPosition sampling starts at"
-            <<"\niteration/time: "<<sampleBegin<<"/"<<sampleBegin/numSpheres
-            <<"\n"<<std::endl;
+        std::cout<<"\nPosition sampling starts at iteration: "<<sampleBegin<<std::endl;
 
         std::string data_command = "[ -d data ] || mkdir data";
         std::string command = "mkdir data/data" + simulationID;
@@ -118,23 +114,28 @@ void MonteCarlo(Config config, bool usePreviousStates,
     System system(config, usePreviousStates, previousID);
 
     const long long int numIterations = config.GetNumIterations();
-    const int skipSamples = config.GetSkipSamples();
+//    const int skipSamples = config.GetSkipSamples();
     const double swapProbability = config.GetSwapProbability();
-
-    std::string outputStatesFile = "data/data" + simulationID + "/outputStates.txt";
-    ClearContents(outputStatesFile);
-    std::vector<std::vector<double>> exportedStates;
 
     std::string outputIterationsFile = "data/data" + simulationID + "/iterations.txt";
     std::string outputEnergyFile ="data/data" + simulationID + "/energy.txt";
-    std::string outputPressureFile = "data/data" + simulationID + "/pressure.txt";
     std::string outputSwapFile = "data/data" + simulationID + "/swapAcceptance.txt";
     std::string outputTranslationFile = "data/data" + simulationID + "/translationAcceptance.txt";
     ClearContents(outputIterationsFile);
     ClearContents(outputEnergyFile);
-    ClearContents(outputPressureFile);
     ClearContents(outputSwapFile);
     ClearContents(outputTranslationFile);
+
+    std::string outputStatesFile10000 = "data/data" + simulationID + "/outputStates10000.txt";
+    std::string outputStatesFile100000 = "data/data" + simulationID + "/outputStates100000.txt";
+    std::string outputStatesFile1000000 = "data/data" + simulationID + "/outputStates1000000.txt";
+    std::string outputStatesFile10000000 = "data/data" + simulationID + "/outputStates10000000.txt";
+    ClearContents(outputStatesFile10000);
+    ClearContents(outputStatesFile100000);
+    ClearContents(outputStatesFile1000000);
+    ClearContents(outputStatesFile10000000);
+
+    std::vector<std::vector<double>> exportedStates;
 
     // Record start time.
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -146,17 +147,31 @@ void MonteCarlo(Config config, bool usePreviousStates,
     long long int logScaler = 10;
     for(long long int it=0; it<numIterations; ++it)
     {
-        if((it >= sampleBegin) && (it%skipSamples==0))
+        if((it >= sampleBegin) && (numIterations>=10000) && (it%10000==0) && (it<=10000000))
         {
             exportedStates = system.GetStates();
-            Export2D(exportedStates, outputStatesFile, it);
+            Export2D(exportedStates, outputStatesFile10000, it);
+        }
+        if((it >= sampleBegin) && (numIterations>=100000) && (it%100000==0) && (it<=100000000))
+        {
+            exportedStates = system.GetStates();
+            Export2D(exportedStates, outputStatesFile100000, it);
+        }
+        if((it >= sampleBegin) && (numIterations>=1000000) && (it%1000000==0) && (it<=1000000000))
+        {
+            exportedStates = system.GetStates();
+            Export2D(exportedStates, outputStatesFile1000000, it);
+        }
+        if((it >= sampleBegin) && (numIterations>=10000000) && (it%10000000==0) && (it<=10000000000))
+        {
+            exportedStates = system.GetStates();
+            Export2D(exportedStates, outputStatesFile10000000, it);
         }
 
         if(it%((long long int) logScaler/10)==0)
         {
             ExportItem(it, outputIterationsFile);
             ExportItem(system.GetTotalEnergy(), outputEnergyFile);
-            ExportItem(system.GetPressure(), outputPressureFile);
 
             // Export MC acceptance ratios.
             double swapRatio = (double) system.GetAcceptedSwaps()/attemptedSwaps;
@@ -199,29 +214,14 @@ void MonteCarlo(Config config, bool usePreviousStates,
 
                 double secondsLeft = estimatedTimeOfCompletion.count();
 
-                std::cout<<std::setw(3)<<progress<<"%";
-                if(secondsLeft > 3600 * numProgressUpdatesToDo)
-                {
-                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft/3600<<" hours"
-                        <<"\t at "<<dateTime<<std::endl;
-                }
-                else if(secondsLeft > 60 * numProgressUpdatesToDo)
-                {
-                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft/60<<" min"
-                        <<"\t at "<<dateTime<<std::endl;
-                }
-                else
-                {
-                    std::cout<<"\t ETA: "<< std::setw(10)<<secondsLeft<<"s"
-                        <<" at "<<dateTime<<std::endl;
-                }
-                std::cout<<"Estimated time of completion "<<GetCurrentTime(current, secondsLeft)
-                    <<std::endl<<std::endl;
+                std::cout<<std::setw(3)<<progress<<"%"
+                    << std::setw(15)<<secondsLeft/3600<<"h"
+                    <<" at "<<dateTime<<std::endl;
+                std::cout<<std::setw(24)<<"ETA: "<<GetCurrentTime(current, secondsLeft)
+                    <<std::endl;
             }
         }
     }
-    std::cout<<"Attempted swaps: "<<attemptedSwaps<<std::endl;
-    std::cout<<"Attempted translations: "<<attemptedTranslations<<std::endl;
 }
 
 void CopyFile(const std::string& sourceFile, const std::string& destinationFile)

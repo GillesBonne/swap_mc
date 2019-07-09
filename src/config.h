@@ -10,13 +10,8 @@ private:
     const std::string configFile;
 
     int numSpheres;
-//    double ratioSizeSphere;
 
     double numDensity;
-//    double volumeBox;
-//    double lengthBox;
-//    int latticeWidth;
-//    double latticeParameter;
 
     double temperatureFixed;
 
@@ -25,21 +20,16 @@ private:
     double swapProbability;
 
     long long int numIterations;
-    int skipSamples;
+
+    int numSpecies;
+    int randomSeed;
+
 public:
     // Constructor
     Config(const std::string _configFile);
 
-//    int FindLatticeWidth() const;
-
     // Accessor functions
     int GetNumSpheres() const;
-    double GetRatioSizeSphere() const;
-
-//    double GetVolumeBox() const;
-//    double GetLengthBox() const;
-//    int GetLatticeWidth() const;
-//    double GetLatticeParameter() const;
 
     double GetTemperatureFixed() const;
 
@@ -51,7 +41,8 @@ public:
 
     double GetNumDensity() const;
 
-    int GetSkipSamples() const;
+    int GetNumSpecies() const;
+    int GetRandomSeed() const;
 };
 
 #endif

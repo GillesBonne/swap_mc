@@ -18,7 +18,7 @@ with open(config_path,"r") as config_file:
 
 skip = 10
 
-input_path = "data/data" + id + "/outputStates.txt"
+input_path = "data/data" + id + "/outputStates10000.txt"
 output_path = "visuals/visuals" + id + "/ovitoStates.txt"
 
 iteration_on_line = False

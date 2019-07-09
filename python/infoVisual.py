@@ -21,13 +21,11 @@ with open(config_path,"r") as config_file:
 
 iterations = []
 energy = []
-pressure = []
 swap_acceptance = []
 translation_acceptance = []
 
 iterations_path = "data/data" + id + "/iterations.txt"
 energy_path = "data/data" + id + "/energy.txt"
-pressure_path = "data/data" + id + "/pressure.txt"
 swap_path = "data/data" + id + "/swapAcceptance.txt"
 translation_path = "data/data" + id + "/translationAcceptance.txt"
 
@@ -37,9 +35,6 @@ with open(iterations_path,"r") as file:
 with open(energy_path,"r") as file:
     for line in file:
         energy.append(float(line))
-with open(pressure_path,"r") as file:
-    for line in file:
-        pressure.append(float(line))
 with open(swap_path,"r") as file:
     for line in file:
         swap_acceptance.append(float(line))
@@ -49,7 +44,6 @@ with open(translation_path,"r") as file:
 
 time = np.array(iterations) / num_spheres
 energy = np.array(energy)
-pressure = np.array(pressure)
 
 for i in range(37):
     del iterations[0]
@@ -70,15 +64,6 @@ plt.title(str(np.mean(energy)))
 plt.tick_params(which="both", direction="in")
 plt.ylim(bottom=0)
 fig.savefig(visual_path_energy, bbox_inches='tight')
-
-visual_path_pressure = "visuals/visuals" + id + "/pressure.pdf"
-fig = plt.figure()
-plt.semilogx(time, pressure)
-plt.xlabel('Time')
-plt.ylabel('Pressure')
-plt.tick_params(which="both", direction="in")
-plt.ylim(bottom=0)
-fig.savefig(visual_path_pressure, bbox_inches='tight')
 
 visual_swap_path = "visuals/visuals" + id + "/swapAcceptance.pdf"
 fig = plt.figure()

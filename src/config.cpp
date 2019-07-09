@@ -12,7 +12,6 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     std::ifstream inFile(configFile);
 
     std::string numSpheresString;
-    std::string ratioSizeSphereString;
 
     std::string numDensityString;
 
@@ -24,6 +23,9 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
 
     std::string numIterationsString;
     std::string skipSamplesString;
+
+    std::string numSpeciesString;
+    std::string randomSeedString;
 
     // Read contents of config file and assigns it to the corresponding member variables.
     if (inFile.is_open())
@@ -62,9 +64,13 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
             {
                 numIterationsString = value;
             }
-            else if(name=="skipSamples")
+            else if(name=="numSpecies")
             {
-                skipSamplesString = value;
+                numSpeciesString = value;
+            }
+            else if(name=="randomSeed")
+            {
+                randomSeedString = value;
             }
         }
     }
@@ -92,7 +98,8 @@ Config::Config(const std::string _configFile) : configFile(_configFile)
     maxTranslationDistanceInLengthUnits = std::stod(maxTranslationDistanceInLengthUnitsString);
     swapProbability = std::stod(swapProbabilityString);
     numIterations = std::stoll(numIterationsString);
-    skipSamples = std::stoi(skipSamplesString);
+    numSpecies = std::stoi(numSpeciesString);
+    randomSeed = std::stoi(randomSeedString);
 }
 
 int Config::GetNumSpheres() const
@@ -119,7 +126,11 @@ double Config::GetNumDensity() const
 {
     return numDensity;
 }
-int Config::GetSkipSamples() const
+int Config::GetNumSpecies() const
 {
-    return skipSamples;
+    return numSpecies;
+}
+int Config::GetRandomSeed() const
+{
+    return randomSeed;
 }
