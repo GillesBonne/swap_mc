@@ -25,8 +25,8 @@ private:
 
     std::vector<Sphere> spheres;
 
-    int acceptedTranslations = 0;
-    int acceptedSwaps = 0;
+    long long int acceptedTranslations = 0;
+    long long int acceptedSwaps = 0;
 
     // Member variables: random number generators
     std::mt19937 mersenneTwister;

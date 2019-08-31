@@ -222,6 +222,22 @@ Distribution::Distribution(const int numSpecies)
         b =         sigmaMin;
         c =         0.00896128;
     }
+    else if(numSpecies==1000)
+    {
+        sigmaMax =  1.61004;
+        sigmaMin =  0.72557;
+        a =         0.0011678;
+        b =         sigmaMin;
+        c =         0.000885355;
+    }
+    else if(numSpecies==10000)
+    {
+        sigmaMax =  1.60955;
+        sigmaMin =  0.725351;
+        a =         0.000116745;
+        b =         sigmaMin;
+        c =         0.0000884291;
+    }
     else if(numSpecies==100000)
     {
         sigmaMax =  1.60951;

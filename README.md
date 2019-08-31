@@ -1,7 +1,5 @@
 # Swap Monte Carlo 
 
-Simulation code developed for my Final Bachelor Project, studying Applied Physics at the Eindhoven University of Technology.
-The goal of the project was to generate and describe the dynamics of supercooled liquids using a recently proposed Monte Carlo molecular modeling method.
 The simulation implements the swap Monte Carlo method introduced by Grigera and Parisi [1] for a mixture with various levels of polydispersity using a nonadditive soft repulsive pair potential [2].
 
 ## Getting started

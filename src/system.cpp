@@ -13,7 +13,7 @@
 #include "states.h"
 #include "distribution.h"
 
-System::System(const Config& config, const bool usePreviousStates, std::string previousID)
+System::System(const Config& config, const bool usePreviousStates, std::string previousPath)
     :   numSpheres(config.GetNumSpheres()),
         spheres(numSpheres),
         temperatureFixed(config.GetTemperatureFixed()),
@@ -45,8 +45,8 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
     if(usePreviousStates)
     {
         std::cout<<"Using previous states"<<std::endl;
-        std::string previousConfigFile = "data/data" + previousID + "/outputStates.txt";
-        States states(previousConfigFile, numSpheres);
+        std::string previousOutputFile = previousPath + "/lastState.txt";
+        States states(previousOutputFile, numSpheres);
 
         int maxSampleIndex = states.GetMaxSampleIndex();
 

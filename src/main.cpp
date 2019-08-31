@@ -13,22 +13,19 @@
 #include "system.h"
 #include "config.h"
 #include "timer.h"
-
 #include "export2D.h"
 
 void MonteCarlo(Config config, bool usePreviousStates,
         std::string simulationID, std::string previousID,
         int sampleBegin);
 void PrintAcceptanceInfo(const System& system, int numIterations);
-void CopyFile(const std::string& sourcePath, const std::string& destinationPath);
 std::string GetCurrentTime(std::chrono::high_resolution_clock::time_point current,
         double offset);
 void CheckFileExistence(std::string fileName);
 
 // Argument options:
-// 0
-// 1: SimulationID
-// 2: SimulationID PreviousSimulationID
+// 2: sample delay & path
+// 3: sample delay & path & previous path
 int main(int argc, char* argv[])
 {
     Timer timer;
@@ -36,42 +33,29 @@ int main(int argc, char* argv[])
     try
     {
         bool usePreviousStates = false;
-        std::string simulationID;
-        std::string previousID;
-        int sampleBegin;
-        if(argc==1)
+
+        std::string previousPath;
+        std::string currentPath;
+        long long int sampleBegin;
+        if(argc==3)
         {
-            std::cout<<"Overwriting data files without ID."<<std::endl;
-            sampleBegin = 0;
-        }
-        else if(argc==2)
-        {
-            std::cout<<"Overwriting data files without ID."<<std::endl;
-            sampleBegin = std::stoi(argv[1]);
-        }
-        else if(argc==3)
-        {
-            simulationID = argv[2];
-            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
-            sampleBegin = std::stoi(argv[1]);
+            currentPath = argv[2];
+            std::cout<<"Current path: "<<currentPath<<std::endl;
+            sampleBegin = std::stoll(argv[1]);
         }
         else if(argc==4)
         {
-            simulationID = argv[2];
-            std::cout<<"Simulation ID: "<<simulationID<<std::endl;
-            previousID = argv[3];
-            std::cout<<"Previous ID: "<<previousID<<std::endl;
-            if(simulationID == previousID)
-            {
-                throw std::invalid_argument("Current and previous ID are equal.");
-            }
+            currentPath = argv[2];
+            std::cout<<"Current path: "<<currentPath<<std::endl;
+            previousPath = argv[3];
+            std::cout<<"Previous path: "<<previousPath<<std::endl;
 
-            std::string previousConfigFile = "data/data" + previousID + "/lastConfig.txt";
+            std::string previousConfigFile = previousPath + "/config.txt";
             CheckFileExistence(previousConfigFile);
 
             usePreviousStates = true;
 
-            sampleBegin = std::stoi(argv[1]);
+            sampleBegin = std::stoll(argv[1]);
         }
         else
         {
@@ -79,23 +63,13 @@ int main(int argc, char* argv[])
         }
 
 
-        std::string configFile = "config" + simulationID + ".txt";
+        std::string configFile = currentPath + "/config.txt";
         CheckFileExistence(configFile);
         Config config(configFile);
 
         std::cout<<"\nPosition sampling starts at iteration: "<<sampleBegin<<std::endl;
 
-        std::string data_command = "[ -d data ] || mkdir data";
-        std::string command = "mkdir data/data" + simulationID;
-        // To suppress the compiler warning of not using the return value.
-        int _;
-        _ = std::system(data_command.c_str());
-        _ = std::system(command.c_str());
-
-        std::string copyConfigFile = "data/data" + simulationID + "/lastConfig.txt";
-        CopyFile(configFile, copyConfigFile);
-
-        MonteCarlo(config, usePreviousStates, simulationID, previousID, sampleBegin);
+        MonteCarlo(config, usePreviousStates, currentPath, previousPath, sampleBegin);
     }
     catch(std::out_of_range& e)
     {
@@ -108,32 +82,33 @@ int main(int argc, char* argv[])
 }
 
 void MonteCarlo(Config config, bool usePreviousStates,
-        std::string simulationID, std::string previousID,
+        std::string currentPath, std::string previousPath,
         int sampleBegin)
 {
-    System system(config, usePreviousStates, previousID);
+    System system(config, usePreviousStates, previousPath);
 
     const long long int numIterations = config.GetNumIterations();
-//    const int skipSamples = config.GetSkipSamples();
     const double swapProbability = config.GetSwapProbability();
 
-    std::string outputIterationsFile = "data/data" + simulationID + "/iterations.txt";
-    std::string outputEnergyFile ="data/data" + simulationID + "/energy.txt";
-    std::string outputSwapFile = "data/data" + simulationID + "/swapAcceptance.txt";
-    std::string outputTranslationFile = "data/data" + simulationID + "/translationAcceptance.txt";
+    std::string outputIterationsFile = currentPath + "/iterations.txt";
+    std::string outputEnergyFile = currentPath + "/energy.txt";
+    std::string outputSwapFile = currentPath + "/swapAcceptance.txt";
+    std::string outputTranslationFile = currentPath + "/translationAcceptance.txt";
     ClearContents(outputIterationsFile);
     ClearContents(outputEnergyFile);
     ClearContents(outputSwapFile);
     ClearContents(outputTranslationFile);
 
-    std::string outputStatesFile10000 = "data/data" + simulationID + "/outputStates10000.txt";
-    std::string outputStatesFile100000 = "data/data" + simulationID + "/outputStates100000.txt";
-    std::string outputStatesFile1000000 = "data/data" + simulationID + "/outputStates1000000.txt";
-    std::string outputStatesFile10000000 = "data/data" + simulationID + "/outputStates10000000.txt";
+    std::string outputStatesFile10000 = currentPath + "/outputStates10000.txt";
+    std::string outputStatesFile100000 = currentPath + "/outputStates100000.txt";
+    std::string outputStatesFile1000000 = currentPath + "/outputStates1000000.txt";
+    std::string outputStatesFile10000000 = currentPath + "/outputStates10000000.txt";
+    std::string lastStateFile = currentPath + "/lastState.txt";
     ClearContents(outputStatesFile10000);
     ClearContents(outputStatesFile100000);
     ClearContents(outputStatesFile1000000);
     ClearContents(outputStatesFile10000000);
+    ClearContents(lastStateFile);
 
     std::vector<std::vector<double>> exportedStates;
 
@@ -141,8 +116,8 @@ void MonteCarlo(Config config, bool usePreviousStates,
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::cout<<"Simulation started at "<<GetCurrentTime(start, 0)<<std::endl<<std::endl;
 
-    int attemptedSwaps = 0;
-    int attemptedTranslations = 0;
+    long long int attemptedSwaps = 0;
+    long long int attemptedTranslations = 0;
     int whichPrint = 0;
     long long int logScaler = 10;
     for(long long int it=0; it<numIterations; ++it)
@@ -166,6 +141,11 @@ void MonteCarlo(Config config, bool usePreviousStates,
         {
             exportedStates = system.GetStates();
             Export2D(exportedStates, outputStatesFile10000000, it);
+        }
+        if(it==(numIterations-1))
+        {
+            exportedStates = system.GetStates();
+            Export2D(exportedStates, lastStateFile, it);
         }
 
         if(it%((long long int) logScaler/10)==0)
@@ -220,21 +200,6 @@ void MonteCarlo(Config config, bool usePreviousStates,
                 std::cout<<std::setw(24)<<"ETA: "<<GetCurrentTime(current, secondsLeft)
                     <<std::endl;
             }
-        }
-    }
-}
-
-void CopyFile(const std::string& sourceFile, const std::string& destinationFile)
-{
-    std::ifstream inFile(sourceFile);
-    std::ofstream outFile(destinationFile, std::ios_base::trunc);
-    if(inFile.is_open())
-    {
-        std::string line;
-        while(getline(inFile, line))
-        {
-            outFile << line;
-            outFile << "\n";
         }
     }
 }
