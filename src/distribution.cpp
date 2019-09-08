@@ -32,11 +32,11 @@ Distribution::Distribution(const int numSpecies)
     }
     else if(numSpecies==5)
     {
-        sigmaMax =  1.78458;
-        sigmaMin =  0.804227;
-        a =         0.321294;
+        sigmaMax =  1.74313;
+        sigmaMin =  0.785546;
+        a =         0.251929;
         b =         sigmaMin;
-        c =         0.326784;
+        c =         0.239395;
     }
     else if(numSpecies==6)
     {
