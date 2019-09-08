@@ -13,14 +13,10 @@ States::States(const std::string _statesFile, const int _numSpheres)
 {
 }
 
-std::vector<std::vector<double>>  States::GetSample(int sampleIndex, bool withRadius)
+std::vector<std::vector<double>>  States::GetSample()
 {
-    assert(sampleIndex != 0);
     std::vector<std::vector<double>> spherePositions;
     spherePositions.reserve(numSpheres);
-
-
-    int sampleIndexCounter = 0;
 
     std::ifstream inFile(statesFile);
     if(inFile.is_open())
@@ -32,122 +28,29 @@ std::vector<std::vector<double>>  States::GetSample(int sampleIndex, bool withRa
             if(line=="iteration")
             {
                 iterationOnLine = true;
-                ++sampleIndexCounter;
             }
             else if(iterationOnLine)
             {
                 iterationOnLine = false;
-                sampleIteration = std::stoi(line);
             }
             else
             {
-                // add spherePosition here
-                if(withRadius)
+                std::vector<double> spherePosition(4);
+                std::stringstream linestream(line);
+                std::string value;
+                int item = 0;
+                while(getline(linestream,value,','))
                 {
-                    std::vector<double> spherePosition(4);
-                    if(sampleIndexCounter==sampleIndex)
+                    // First 3 elements are x, y, z respectively
+                    if(item<4)
                     {
-                        std::stringstream linestream(line);
-                        std::string value;
-                        int item = 0;
-                        while(getline(linestream,value,','))
-                        {
-                            // First 3 elements are x, y, z respectively
-                            if(item<4)
-                            {
-                                spherePosition[item] = std::stod(value);
-                            }
-                            ++item;
-                        }
-                    spherePositions.push_back(spherePosition);
+                        spherePosition[item] = std::stod(value);
                     }
+                    ++item;
                 }
-                else
-                {
-                    std::vector<double> spherePosition(3);
-                    if(sampleIndexCounter==sampleIndex)
-                    {
-                        std::stringstream linestream(line);
-                        std::string value;
-                        int item = 0;
-                        while(getline(linestream,value,','))
-                        {
-                            // First 3 elements are x, y, z respectively
-                            if(item<3)
-                            {
-                                spherePosition[item] = std::stod(value);
-                            }
-                            ++item;
-                        }
-                    spherePositions.push_back(spherePosition);
-                    }
-                }
-            }
-
-            if(sampleIndexCounter>sampleIndex)
-            {
-                break;
+                spherePositions.push_back(spherePosition);
             }
         }
     }
     return spherePositions;
-}
-
-int States::GetSampleIteration(int sampleIndex)
-{
-    assert(sampleIndex != 0);
-    int sampleIndexCounter = 0;
-    std::ifstream inFile(statesFile);
-    if(inFile.is_open())
-    {
-        std::string line;
-        bool iterationOnLine = false;
-        while(getline(inFile, line))
-        {
-            if(line=="iteration")
-            {
-                iterationOnLine = true;
-                ++sampleIndexCounter;
-            }
-            else if(iterationOnLine)
-            {
-                iterationOnLine = false;
-                sampleIteration = std::stoi(line);
-            }
-
-            if(sampleIndexCounter>sampleIndex)
-            {
-                break;
-            }
-        }
-    }
-    return sampleIteration;
-}
-
-int States::GetMaxSampleIndex()
-{
-    std::ifstream inFile(statesFile);
-
-    if(inFile.is_open())
-    {
-        std::string line;
-        bool iterationOnLine = false;
-        int MaxSampleIndex = 0;
-        int previousSampleIteration = -1;
-        while(getline(inFile, line))
-        {
-            if(line=="iteration")
-            {
-                iterationOnLine = true;
-            }
-            else if(iterationOnLine)
-            {
-                iterationOnLine = false;
-                sampleIteration = std::stoi(line);
-                previousSampleIteration = sampleIteration;
-                ++MaxSampleIndex;
-            }
-        }
-    return MaxSampleIndex;
-    }
 }

@@ -48,10 +48,8 @@ System::System(const Config& config, const bool usePreviousStates, std::string p
         std::string previousOutputFile = previousPath + "/lastState.txt";
         States states(previousOutputFile, numSpheres);
 
-        int maxSampleIndex = states.GetMaxSampleIndex();
-
         std::vector<std::vector<double>> spherePositions(numSpheres);
-        spherePositions = states.GetSample(maxSampleIndex, true);
+        spherePositions = states.GetSample();
 
         for(int i=0; i<numSpheres; ++i)
         {
